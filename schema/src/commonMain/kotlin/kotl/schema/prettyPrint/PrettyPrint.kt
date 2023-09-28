@@ -23,7 +23,7 @@ public fun TLSchemaElement.prettyString(): String = when (this) {
         append(';')
     }
     is TLSchemaSectionDivider.Functions -> "---functions---"
-    is TLSchemaSectionDivider.Types -> "---functions---"
+    is TLSchemaSectionDivider.Types -> "---types---"
 }
 
 public fun TLSchemaElement.prettyPrint(): Unit = println(prettyString())
