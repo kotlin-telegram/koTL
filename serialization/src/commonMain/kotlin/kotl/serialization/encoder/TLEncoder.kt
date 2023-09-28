@@ -1,6 +1,5 @@
-package kotl.serialization.encode
+package kotl.serialization.encoder
 
-import kotl.core.element.TLElement
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.extensions.tlFunction

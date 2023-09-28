@@ -2,8 +2,8 @@ package kotl.serialization
 
 import kotl.core.element.TLElement
 import kotl.core.encoder.encodeToByteArray
-import kotl.serialization.encode.SingleElementWriter
-import kotl.serialization.encode.TLEncoder
+import kotl.serialization.encoder.SingleElementWriter
+import kotl.serialization.encoder.TLEncoder
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
