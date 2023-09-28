@@ -19,25 +19,24 @@
 
 ```kotlin
 @Serializable
-@TLFunction(crc32 = 0x2d84d5f5_u)
+@Crc32(value = 0x2d84d5f5_u)
 data class GetUserRequest(
     val ids: List<InputUserType>
 )
 
 @Serializable
-@TLType
 sealed interface InputUserType
 
 @Serializable
-@TLFunction(crc32 = 0xb98886cf_u)
+@Crc32(value = 0xb98886cf_u)
 data object InputUserEmpty : InputUserType
 
 @Serializable
-@TLFunction(crc32 = 0xf7c1b13f_u)
+@Crc32(value = 0xf7c1b13f_u)
 data object InputUserSelf : InputUserType
 
 @Serializable
-@TLFunction(crc32 = 0xf21158c6_u)
+@Crc32(value = 0xf21158c6_u)
 data class InputUser(
     val userId: Long,
     val accessHash: Long

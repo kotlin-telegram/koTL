@@ -1,8 +1,7 @@
 package kotl.schema.parser.function
 
 import kotl.parser.*
-import kotl.parser.debug.printDebugInfo
-import kotl.schema.ast.TLSchemaFunction
+import kotl.schema.element.TLSchemaFunction
 import kotl.schema.parser.type.type
 import kotl.schema.types.*
 import kotl.schema.types.ParameterName

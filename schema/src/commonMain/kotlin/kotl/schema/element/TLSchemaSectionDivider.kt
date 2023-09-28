@@ -1,4 +1,4 @@
-package kotl.schema.ast
+package kotl.schema.element
 
 public sealed interface TLSchemaSectionDivider : TLSchemaElement {
     public data object Functions : TLSchemaSectionDivider {

@@ -1,8 +1,7 @@
 package kotl.schema.parser.comment.multiline
 
 import kotl.parser.*
-import kotl.schema.ast.TLSchemaComment
-import kotl.schema.ast.TLSchemaElement
+import kotl.schema.element.TLSchemaComment
 
 internal fun multilineCommentParser(): Parser<TLSchemaComment> = parser {
     val message = buildString {

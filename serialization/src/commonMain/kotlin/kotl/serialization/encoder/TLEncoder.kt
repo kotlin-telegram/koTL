@@ -2,8 +2,7 @@ package kotl.serialization.encoder
 
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
-import kotl.serialization.extensions.tlFunction
-import kotl.serialization.extensions.tlType
+import kotl.serialization.extensions.crc32
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -59,16 +58,13 @@ internal class TLEncoder(
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
-        if (descriptor.kind == PolymorphicKind.SEALED) {
-            descriptor.tlType ?: throw SerializationException("Sealed Type should be annotated with @TLType to make it compatible with TLFormat")
-            return this
-        }
+        if (descriptor.kind == PolymorphicKind.SEALED) return this
 
         when (descriptor.kind as StructureKind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
-                val tlFunction = descriptor.tlFunction
-                    ?: throw SerializationException("Class should be annotated with @TLFunction to make it compatible with TL format")
-                return TLEncoder(tl, FunctionElementWriter(tlFunction.crc32, writer))
+                val tlFunction = descriptor.crc32
+                    ?: throw SerializationException("Class should be annotated with @Crc32 to make it compatible with TL format")
+                return TLEncoder(tl, FunctionElementWriter(tlFunction.value, writer))
             }
             else -> error("Unknown structure kind ${descriptor.kind}")
         }

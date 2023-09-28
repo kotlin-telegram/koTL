@@ -1,3 +1,3 @@
-package kotl.schema.ast
+package kotl.schema.element
 
 public data class TLSchemaComment(val string: String) : TLSchemaElement

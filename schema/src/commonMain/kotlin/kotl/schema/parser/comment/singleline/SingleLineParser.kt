@@ -1,8 +1,7 @@
 package kotl.schema.parser.comment.singleline
 
 import kotl.parser.*
-import kotl.schema.ast.TLSchemaComment
-import kotl.schema.ast.TLSchemaElement
+import kotl.schema.element.TLSchemaComment
 
 internal fun singleLineCommentParser() = parser {
     val string = commentStart() + takeLine()

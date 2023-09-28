@@ -1,7 +1,7 @@
 package kotl.schema.parser.section
 
 import kotl.parser.*
-import kotl.schema.ast.TLSchemaSectionDivider
+import kotl.schema.element.TLSchemaSectionDivider
 
 internal fun sectionDividerParser(): Parser<TLSchemaSectionDivider> =
     parser {

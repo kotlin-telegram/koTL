@@ -1,9 +1,9 @@
 package kotl.schema.prettyPrint
 
-import kotl.schema.ast.TLSchemaComment
-import kotl.schema.ast.TLSchemaElement
-import kotl.schema.ast.TLSchemaFunction
-import kotl.schema.ast.TLSchemaSectionDivider
+import kotl.schema.element.TLSchemaComment
+import kotl.schema.element.TLSchemaElement
+import kotl.schema.element.TLSchemaFunction
+import kotl.schema.element.TLSchemaSectionDivider
 import kotl.schema.types.TypeReference
 
 public fun TLSchemaElement.prettyString(): String = when (this) {

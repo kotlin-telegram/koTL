@@ -1,4 +1,4 @@
-package kotl.schema.ast
+package kotl.schema.element
 
 import kotl.schema.types.*
 

@@ -1,3 +1,3 @@
-package kotl.schema.ast
+package kotl.schema.element
 
 public sealed interface TLSchemaElement
