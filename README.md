@@ -1,8 +1,8 @@
 # koTL
 
-[![GitHub stars](https://img.shields.io/github/stars/kotlin-telegram/koTL.svg)](https://github.com/kotlin-telegram/koTL/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/kotlin-telegram/koTL.svg)](https://github.com/kotlin-telegram/koTL/network)
-[![License](https://img.shields.io/github/license/kotlin-telegram/koTL.svg)](LICENSE.md)
+[![GitHub stars](https://img.shields.io/github/stars/kotlin-telegram/koTL.svg?cache)](https://github.com/kotlin-telegram/koTL/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/kotlin-telegram/koTL.svg?cache)](https://github.com/kotlin-telegram/koTL/network)
+[![License](https://img.shields.io/github/license/kotlin-telegram/koTL.svg?cache)](LICENSE.md)
 
 ⚠️ ALL OF THIS IS WORK IN PROGRESS ⚠️
 
