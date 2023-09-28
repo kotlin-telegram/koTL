@@ -1,0 +1,13 @@
+[versions]
+
+kotlin = "1.9.0"
+koTLVersion = "0.0.1"
+kotlinxSerialization = "1.5.0"
+
+[libraries]
+
+kotlinxSerialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+
+# Gradle plugins
+kotlinxSerializationPlugin = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+kotlinPlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
