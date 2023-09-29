@@ -7,9 +7,14 @@ import kotl.schema.types.TypeReference
 import kotl.schema.types.TypeName
 
 internal fun ParserState.type(): TypeReference {
+    exclamationMark()
     val name = name()
     val arguments = arguments()
     return TypeReference(name, arguments)
+}
+
+private fun ParserState.exclamationMark() {
+    safely { consumeToken('!') }
 }
 
 private fun ParserState.name(): TypeName {

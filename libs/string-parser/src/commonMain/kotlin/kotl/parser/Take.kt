@@ -6,7 +6,7 @@ public inline fun ParserState.takeWhile(predicate: (Char) -> Boolean): String {
     return string
 }
 
-public inline fun ParserState.takeUntil(string: String): String {
+public fun ParserState.takeUntil(string: String): String {
     return many {
         fail { consume(string) }
         take(n = 1)

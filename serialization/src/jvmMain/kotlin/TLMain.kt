@@ -83,10 +83,6 @@ private fun main() {
     val deserialized: GetUserRequest = TL.decodeFromByteArray(bytes)
     println("RESULT: $deserialized")
 
-
-
-
-
     println()
 }
 

@@ -1,23 +1,26 @@
 package kotl.schema.parser.function
 
 import kotl.parser.*
-import kotl.schema.element.TLSchemaFunction
+import kotl.parser.debug.printDebugInfo
+import kotl.schema.element.TLSchemaCallable
 import kotl.schema.parser.type.type
 import kotl.schema.types.*
 import kotl.schema.types.ParameterName
 
-internal fun functionParser(): Parser<TLSchemaFunction> = lineParser {
+internal fun functionParser(): Parser<TLSchemaCallable> = lineParser {
     val name = name()
     val hash = hash()
+    val typeParameters = typeParameters()
     val parameters = parameters()
     safely { consumeToken('?') }
     consumeToken('=')
     val returnType = type()
 
-    TLSchemaFunction(
+    TLSchemaCallable(
         name = name,
-        parameters = parameters,
         hash = hash,
+        typeParameters = typeParameters,
+        parameters = parameters,
         returnType = returnType
     )
 }
@@ -32,6 +35,23 @@ private fun ParserState.hash(): FunctionHash? {
     val string = hash + takeWhile { char -> !char.isWhitespace() }
     whitespace()
     return FunctionHash(string)
+}
+
+private fun ParserState.typeParameters(): List<TypeParameter> {
+    safely { consumeToken('{') } ?: return emptyList()
+
+    val parameters = many(
+        parser = parser {
+            val name = parameterName()
+            consumeToken(':')
+            val upperBound = type()
+            TypeParameter(name, upperBound)
+        },
+        separator = parser { comma() }
+    )
+
+    consumeToken('}')
+    return parameters
 }
 
 private fun ParserState.parameters(): List<Parameter> {
