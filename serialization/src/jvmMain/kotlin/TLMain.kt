@@ -1,15 +1,13 @@
 package kotl.serialization
 
-import kotl.core.builder.buildTLTypeDescriptor
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
-import kotl.serialization.annotation.TLRpcCall
-import kotl.serialization.extensions.asTLDescriptor
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 
 @Serializable
-@TLRpcCall(crc32 = 0x2d84d5f5_u)
+@Crc32(value = 0x2d84d5f5_u)
 public data class GetUserRequest(
     val ids: List<InputUserType>
 )
@@ -33,21 +31,21 @@ public data class inputUser(
     val username: String
 ) : InputUserType
 
-private fun main() {
-    val descriptor = InputUserType.serializer().descriptor.asTLDescriptor()
-    println(descriptor.prettyString())
-
-    val manual = buildTLTypeDescriptor {
-        constructor(0xb98886cf_u)
-        constructor(0xf7c1b13f_u)
-        constructor(0xf21158c6_u) {
-            longParameter()
-            longParameter()
-            stringParameter()
-        }
-    }
-    println(manual.prettyString())
-}
+//private fun main() {
+//    val descriptor = InputUserType.serializer().descriptor.asTLDescriptor()
+//    println(descriptor.prettyString())
+//
+//    val manual = buildTLTypeDescriptor {
+//        constructor(0xb98886cf_u)
+//        constructor(0xf7c1b13f_u)
+//        constructor(0xf21158c6_u) {
+//            longParameter()
+//            longParameter()
+//            stringParameter()
+//        }
+//    }
+//    println(manual.prettyString())
+//}
 
 private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = when (this) {
     TLBooleanDescriptor -> indent + "boolean" + '\n'
@@ -71,7 +69,7 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
     }
 }
 
-private fun main1() {
+private fun main() {
     val users = listOf(
         inputUserEmpty,
         inputUserSelf,
@@ -79,9 +77,17 @@ private fun main1() {
     )
     val request = GetUserRequest(users)
 
-    println("INITIAL: " + TL.encodeToTLElement(GetUserRequest.serializer(), request))
+    println("INITIAL: $request")
     val bytes = TL.encodeToByteArray(request)
     println("BYTES: ${bytes.toHexString()}")
+    val deserialized: GetUserRequest = TL.decodeFromByteArray(bytes)
+    println("RESULT: $deserialized")
+
+
+
+
+
+    println()
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)

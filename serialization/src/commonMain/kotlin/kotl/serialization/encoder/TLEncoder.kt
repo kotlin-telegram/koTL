@@ -61,7 +61,7 @@ internal class TLEncoder(
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         if (descriptor.kind == PolymorphicKind.SEALED) return this
 
-        when (descriptor.kind as StructureKind) {
+        when (descriptor.kind as? StructureKind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
                 val crc32 = descriptor.crc32
                 val rpcCall = descriptor.tlRpcCall

@@ -5,6 +5,8 @@ import kotl.core.descriptor.TLExpressionDescriptor
 import kotl.core.element.TLElement
 import kotl.core.element.TLExpression
 import kotl.core.encoder.encodeToByteArray
+import kotl.serialization.decoder.SingleElementReader
+import kotl.serialization.decoder.TLDecoder
 import kotl.serialization.encoder.SingleElementWriter
 import kotl.serialization.encoder.TLEncoder
 import kotl.serialization.extensions.asTLDescriptor
@@ -28,7 +30,9 @@ public sealed class TL(
         deserializer: DeserializationStrategy<T>,
         element: TLElement
     ): T {
-        TODO()
+        val reader = SingleElementReader(element)
+        val decoder = TLDecoder(this, reader)
+        return decoder.decodeSerializableValue(deserializer)
     }
 
     override fun <T> decodeFromByteArray(
@@ -71,3 +75,6 @@ public sealed class TL(
 
 public inline fun <reified T> TL.encodeToTLElement(value: T): TLElement =
     encodeToTLElement(serializer<T>(), value)
+
+public inline fun <reified T> TL.decodeFromTLElement(element: TLElement): T =
+    decodeFromTLElement(serializer<T>(), element)

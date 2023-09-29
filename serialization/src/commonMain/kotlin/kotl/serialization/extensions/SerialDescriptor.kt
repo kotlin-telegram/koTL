@@ -59,5 +59,6 @@ private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
 }
 
 private fun SerialDescriptor.asVectorDescriptor(): TLVectorDescriptor {
-    TODO()
+    val underlying = getElementDescriptor(index = 0).asTLDescriptor()
+    return TLVectorDescriptor(underlying)
 }
