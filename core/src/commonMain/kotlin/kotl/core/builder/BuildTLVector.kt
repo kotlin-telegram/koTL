@@ -2,14 +2,15 @@ package kotl.core.builder
 
 import kotl.core.annotation.TLDsl
 import kotl.core.element.TLElement
+import kotl.core.element.TLExpression
 import kotl.core.element.TLVector
 import kotl.core.element.typedLanguage
 
 @TLDsl
 public class TLVectorBuilder {
-    private val elements = mutableListOf<TLElement>()
+    private val elements = mutableListOf<TLExpression>()
 
-    public fun add(element: TLElement) {
+    public fun add(element: TLExpression) {
         elements += element
     }
 
@@ -22,9 +23,9 @@ public class TLVectorBuilder {
 
     public inline fun addFunctionCall(
         crc32: UInt,
-        block: TLFunctionBuilder.() -> Unit = {}
+        block: TLCallableBuilder.() -> Unit = {}
     ) {
-        add(buildTLFunction(crc32, block))
+        add(buildTLConstructor(crc32, block))
     }
     public inline fun addVector(block: TLVectorBuilder.() -> Unit) {
         add(buildTLVector(block))

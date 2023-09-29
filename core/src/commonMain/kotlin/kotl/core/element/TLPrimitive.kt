@@ -1,3 +1,3 @@
 package kotl.core.element
 
-public sealed interface TLPrimitive : TLElement
+public sealed interface TLPrimitive : TLExpression

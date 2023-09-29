@@ -1,23 +1,25 @@
 package kotl.core.encoder
 
+import kotl.core.descriptor.TLStringDescriptor.STRING_SIZE_MAGIC_NUMBER
 import kotl.core.element.*
 import kotl.stdlib.bytes.encodeToByteArray
 import kotl.stdlib.bytes.padEnd
 import kotl.stdlib.int.nearestMultipleOf
 
 public fun TLElement.encodeToByteArray(): ByteArray = when (this) {
-    is TLFunction -> encodeToByteArray()
+    is TLConstructor -> encodeToByteArray()
+    is TLFunction -> asConstructor().encodeToByteArray()
     is TLDouble -> double.toBits().encodeToByteArray()
     is TLInt -> int.encodeToByteArray()
     is TLLong -> long.encodeToByteArray()
     is TLString -> string.encodeToByteArrayTL()
-    is TLVector -> asFunction().encodeToByteArray()
-    is TLTrue -> asFunction().encodeToByteArray()
-    is TLFalse -> asFunction().encodeToByteArray()
-    is TLNull -> asFunction().encodeToByteArray()
+    is TLVector -> asTLConstructor().encodeToByteArray()
+    is TLTrue -> asTLConstructor().encodeToByteArray()
+    is TLFalse -> asTLConstructor().encodeToByteArray()
+    is TLNull -> asTLConstructor().encodeToByteArray()
 }
 
-private fun TLFunction.encodeToByteArray(): ByteArray {
+private fun TLConstructor.encodeToByteArray(): ByteArray {
     val header = crc32.toInt().encodeToByteArray()
     val parameters = parameters.fold(byteArrayOf()) { data, element ->
         data + element.encodeToByteArray()
@@ -25,42 +27,7 @@ private fun TLFunction.encodeToByteArray(): ByteArray {
     return header + parameters
 }
 
-private fun TLVector.asFunction() = TLFunction(
-    crc32 = TLVector.CRC32,
-    parameters = listOf(elements.size.typedLanguage) + elements
-)
-
-private fun TLTrue.asFunction() = TLFunction(
-    crc32 = CRC32,
-    parameters = emptyList()
-)
-
-private fun TLFalse.asFunction() = TLFunction(
-    crc32 = CRC32,
-    parameters = emptyList()
-)
-
-private fun TLNull.asFunction() = TLFunction(
-    crc32 = CRC32,
-    parameters = emptyList()
-)
-
-/**
- * The values of type string look differently depending on the length L of the string being serialized:
- *
- * If L <= 253, the serialization contains one byte with the value of L,
- * then L bytes of the string followed by 0 to 3 characters containing 0,
- * such that the overall length of the value be divisible by 4,
- * whereupon all of this is interpreted as a sequence of
- * int(L/4)+1 32-bit numbers.
- *
- * If L >= 254, the serialization contains byte 254,
- * followed by 3 bytes with the string length L, followed by
- * L bytes of the string, further followed by 0 to 3 null padding bytes.
- *
- * Source: https://core.telegram.org/mtproto/serialize
- */
-private const val STRING_SIZE_MAGIC_NUMBER: UByte = 254_u
+private fun TLFunction.asConstructor(): TLConstructor = TLConstructor(crc32, parameters)
 
 private fun String.encodeToByteArrayTL(): ByteArray =
     if (length < STRING_SIZE_MAGIC_NUMBER.toInt()) {

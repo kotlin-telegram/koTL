@@ -3,6 +3,7 @@ package kotl.serialization.encoder
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.extensions.crc32
+import kotl.serialization.extensions.tlRpcCall
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -62,11 +63,17 @@ internal class TLEncoder(
 
         when (descriptor.kind as StructureKind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
-                val tlFunction = descriptor.crc32
-                    ?: throw SerializationException("Class should be annotated with @Crc32 to make it compatible with TL format")
-                return TLEncoder(tl, FunctionElementWriter(tlFunction.value, writer))
+                val crc32 = descriptor.crc32
+                val rpcCall = descriptor.tlRpcCall
+
+                return when {
+                    crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
+                    crc32 != null -> TLEncoder(tl, ConstructorElementWriter(crc32.value, writer))
+                    rpcCall != null -> TLEncoder(tl, FunctionElementWriter(rpcCall.crc32, writer))
+                    else -> throw SerializationException("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+                }
             }
-            else -> error("Unknown structure kind ${descriptor.kind}")
+            else -> error("Unsupported structure kind ${descriptor.kind}")
         }
     }
 

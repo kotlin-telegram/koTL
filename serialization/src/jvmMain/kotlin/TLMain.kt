@@ -1,13 +1,15 @@
 package kotl.serialization
 
-import kotl.core.builder.buildTLFunction
-import kotl.core.encoder.encodeToByteArray
+import kotl.core.builder.buildTLTypeDescriptor
+import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
+import kotl.serialization.annotation.TLRpcCall
+import kotl.serialization.extensions.asTLDescriptor
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToByteArray
 
 @Serializable
-@Crc32(value = 0x2d84d5f5_u)
+@TLRpcCall(crc32 = 0x2d84d5f5_u)
 public data class GetUserRequest(
     val ids: List<InputUserType>
 )
@@ -27,32 +29,59 @@ public data object inputUserSelf : InputUserType
 @Crc32(value = 0xf21158c6_u)
 public data class inputUser(
     val userId: Long,
-    val accessHash: Long
+    val accessHash: Long,
+    val username: String
 ) : InputUserType
 
 private fun main() {
-    val users = listOf(
-        inputUserEmpty,
-        inputUserSelf,
-        inputUser(userId = 0xff, accessHash = 0xff)
-    )
-    val request = GetUserRequest(users)
-    println(TL.encodeToTLElement(GetUserRequest.serializer(), request))
-    val bytes = TL.encodeToByteArray(request)
+    val descriptor = InputUserType.serializer().descriptor.asTLDescriptor()
+    println(descriptor.prettyString())
 
-    val request2 = buildTLFunction(/* getUserRequest */0x2d84d5f5_u) {
-        vectorParameter {
-            addFunctionCall(/* inputUserEmpty */0xb98886cf_u)
-            addFunctionCall(/* inputUserSelf */0xf7c1b13f_u)
-            addFunctionCall(/* inputUser */0xf21158c6_u) {
-                parameter(/* userId */0xffL)
-                parameter(/* accessHash */0xffL)
+    val manual = buildTLTypeDescriptor {
+        constructor(0xb98886cf_u)
+        constructor(0xf7c1b13f_u)
+        constructor(0xf21158c6_u) {
+            longParameter()
+            longParameter()
+            stringParameter()
+        }
+    }
+    println(manual.prettyString())
+}
+
+private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = when (this) {
+    TLBooleanDescriptor -> indent + "boolean" + '\n'
+    TLDoubleDescriptor -> indent + "double" + '\n'
+    TLIntDescriptor -> indent + "int" + '\n'
+    TLLongDescriptor -> indent + "long" + '\n'
+    TLNullDescriptor -> indent + "null" + '\n'
+    TLStringDescriptor -> indent + "string" + '\n'
+    is TLTypeDescriptor -> buildString {
+        appendLine(indent + "type: ")
+        constructors.forEach { constructor ->
+            appendLine("$indent    constructor: ${constructor.crc32}")
+            for (parameter in constructor.parameters) {
+                append(parameter.prettyString(indent = "$indent        "))
             }
         }
     }
+    is TLVectorDescriptor -> buildString {
+        appendLine(indent + "vector of: ")
+        append(underlying.prettyString(indent = "$indent    "))
+    }
+}
 
-    println(bytes.toHexString())
-    println(request2.encodeToByteArray().toHexString())
+private fun main1() {
+    val users = listOf(
+        inputUserEmpty,
+        inputUserSelf,
+        inputUser(userId = 0xff, accessHash = 0xff, username = "name")
+    )
+    val request = GetUserRequest(users)
+
+    println("INITIAL: " + TL.encodeToTLElement(GetUserRequest.serializer(), request))
+    val bytes = TL.encodeToByteArray(request)
+    println("BYTES: ${bytes.toHexString()}")
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)

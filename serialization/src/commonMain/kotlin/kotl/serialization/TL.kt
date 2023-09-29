@@ -1,9 +1,13 @@
 package kotl.serialization
 
+import kotl.core.decoder.decodeFromByteArray
+import kotl.core.descriptor.TLExpressionDescriptor
 import kotl.core.element.TLElement
+import kotl.core.element.TLExpression
 import kotl.core.encoder.encodeToByteArray
 import kotl.serialization.encoder.SingleElementWriter
 import kotl.serialization.encoder.TLEncoder
+import kotl.serialization.extensions.asTLDescriptor
 import kotlinx.serialization.BinaryFormat
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
@@ -19,12 +23,29 @@ public sealed class TL(
     public val supportOptionalHash: Boolean,
     override val serializersModule: SerializersModule
 ) : BinaryFormat {
+
+    public fun <T> decodeFromTLElement(
+        deserializer: DeserializationStrategy<T>,
+        element: TLElement
+    ): T {
+        TODO()
+    }
+
     override fun <T> decodeFromByteArray(
         deserializer: DeserializationStrategy<T>,
         bytes: ByteArray
-    ): T {
-        TODO("Not yet implemented")
-    }
+    ): T = decodeFromTLElement(
+        deserializer = deserializer,
+        element = parseToTLElement(
+            descriptor = deserializer.descriptor.asTLDescriptor(),
+            bytes = bytes
+        )
+    )
+
+    public fun parseToTLElement(
+        descriptor: TLExpressionDescriptor,
+        bytes: ByteArray
+    ): TLExpression = descriptor.decodeFromByteArray(bytes)
 
     public fun <T> encodeToTLElement(
         serializer: SerializationStrategy<T>,

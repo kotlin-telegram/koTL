@@ -1,6 +1,6 @@
 package kotl.core.element
 
-public sealed interface TLBoolean : TLElement {
+public sealed interface TLBoolean : TLPrimitive {
     public val boolean: Boolean
 }
 
