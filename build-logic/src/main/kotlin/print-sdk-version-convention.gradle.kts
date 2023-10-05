@@ -3,7 +3,7 @@
 import org.gradle.kotlin.dsl.creating
 
 tasks {
-    val printSdkVersion by creating {
+    val printVersion by creating {
         group = "CI"
 
         doFirst {

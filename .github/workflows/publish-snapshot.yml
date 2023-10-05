@@ -30,7 +30,7 @@ jobs:
         run: ./gradlew
       - name: Add Sdk Version to Env
         run: |
-          snapshot_version=$(./gradlew printSdkVersion -q)
+          snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: ./gradlew publishKotlinMultiplatformPublicationToGitHubRepository
@@ -50,7 +50,7 @@ jobs:
         run: ./gradlew
       - name: Add Sdk Version to Env
         run: |
-          snapshot_version=$(./gradlew printSdkVersion -q)
+          snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: ./gradlew publishJvmPublicationToGitHubRepository
@@ -70,7 +70,7 @@ jobs:
         run: ./gradlew
       - name: Add Sdk Version to Env
         run: |
-          snapshot_version=$(./gradlew printSdkVersion -q)
+          snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: ./gradlew publishJsPublicationToGitHubRepository
@@ -95,7 +95,7 @@ jobs:
         run: ./gradlew
       - name: Add Sdk Version to Env
         run: |
-          snapshot_version=$(./gradlew printSdkVersion -q)
+          snapshot_version=$(./gradlew printVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: |
