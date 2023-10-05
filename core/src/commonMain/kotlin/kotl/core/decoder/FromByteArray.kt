@@ -6,10 +6,10 @@ import kotl.core.element.*
 public fun TLExpressionDescriptor.decodeFromByteArray(byteArray: ByteArray): TLExpression =
     decodeFromBytes(ByteArrayInput(byteArray))
 
-public fun TLTypeDescriptor.decodeFromBytes(byteArray: ByteArray): TLConstructor =
+public fun TLTypeDescriptor.decodeFromByteArray(byteArray: ByteArray): TLConstructor =
     decodeFromBytes(ByteArrayInput(byteArray))
 
-public fun TLVectorDescriptor.decodeFromBytes(byteArray: ByteArray): TLVector =
+public fun TLVectorDescriptor.decodeFromByteArray(byteArray: ByteArray): TLVector =
     decodeFromBytes(ByteArrayInput(byteArray))
 
 private fun TLExpressionDescriptor.decodeFromBytes(input: ByteArrayInput): TLExpression =

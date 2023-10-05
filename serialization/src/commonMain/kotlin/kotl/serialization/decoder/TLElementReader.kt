@@ -1,6 +1,5 @@
 package kotl.serialization.decoder
 
-import kotl.core.descriptor.TLVectorDescriptor
 import kotl.core.element.TLConstructor
 import kotl.core.element.TLElement
 import kotl.core.element.TLVector
