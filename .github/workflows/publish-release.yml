@@ -126,7 +126,6 @@ jobs:
       - deploy-jvm
       - deploy-js
       - deploy-konan
-      - deploy-android
     steps:
       - name: Create Release
         uses: actions/create-release@v1
