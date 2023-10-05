@@ -13,6 +13,9 @@ jobs:
 
   deploy-multiplatform:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     outputs:
       release_version: ${{ steps.output_version.outputs.release_version }}
     steps:
@@ -38,6 +41,9 @@ jobs:
 
   deploy-jvm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Setup Java
@@ -58,6 +64,9 @@ jobs:
 
   deploy-android:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Setup Java
@@ -78,6 +87,9 @@ jobs:
 
   deploy-js:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Setup Java
@@ -98,6 +110,9 @@ jobs:
 
   deploy-konan:
     runs-on: macos-latest
+    permissions:
+      contents: write
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Setup Java
@@ -126,6 +141,9 @@ jobs:
 
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     needs:
       - deploy-multiplatform
       - deploy-jvm
