@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_USERNAME: "actions"
+  GITHUB_USERNAME: "kotlin-telegram"
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
   ORG_GRADLE_PROJECT_snapshot: true
