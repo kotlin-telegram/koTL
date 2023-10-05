@@ -15,4 +15,10 @@ publishing {
             }
         }
     }
+
+    publications.withType<MavenPublication> {
+        versionFromProperties { version ->
+            this.version = version
+        }
+    }
 }
