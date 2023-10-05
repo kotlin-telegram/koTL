@@ -2,6 +2,7 @@ name: Library Snapshot Deploy
 
 on:
   push:
+    branches: [ "master" ]
 #    // for now only master will be deployed
 #    branches-ignore: [ "master" ]
   workflow_dispatch:
