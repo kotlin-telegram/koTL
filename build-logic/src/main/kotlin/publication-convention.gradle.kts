@@ -8,7 +8,7 @@ publishing {
     repositories {
         maven {
             name = "koTL"
-            url = uri("https://maven.pkg.github.com/kotlin-telegram/kotl")
+            url = uri("https://maven.pkg.github.com/kotlin-telegram/koTL")
             credentials {
                 username = System.getenv("GITHUB_USERNAME")
                 password = System.getenv("GITHUB_TOKEN")
