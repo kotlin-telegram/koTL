@@ -2,9 +2,7 @@ name: Library Snapshot Deploy
 
 on:
   push:
-    branches: [ "master" ]
-#    // for now only master will be deployed
-#    branches-ignore: [ "master" ]
+    branches-ignore: [ "master" ]
   workflow_dispatch:
 
 env:
@@ -35,7 +33,7 @@ jobs:
           snapshot_version=$(./gradlew printSdkVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishKotlinMultiplatformPublicationToKoTLRepository
+        run: ./gradlew publishKotlinMultiplatformPublicationToGitHubRepository
 
   deploy-jvm:
     runs-on: ubuntu-latest
@@ -55,7 +53,7 @@ jobs:
           snapshot_version=$(./gradlew printSdkVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishJvmPublicationToKoTLRepository
+        run: ./gradlew publishJvmPublicationToGitHubRepository
 
   deploy-js:
     runs-on: ubuntu-latest
@@ -75,7 +73,7 @@ jobs:
           snapshot_version=$(./gradlew printSdkVersion -q)
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
-        run: ./gradlew publishJsPublicationToKoTLRepository
+        run: ./gradlew publishJsPublicationToGitHubRepository
 
   deploy-konan:
     runs-on: macos-latest
@@ -101,6 +99,6 @@ jobs:
           echo "snapshot_version=$snapshot_version" >> $GITHUB_ENV
       - name: Publish ${{ env.snapshot_version }}
         run: |
-          ./gradlew publishIosX64PublicationToKoTLRepository \
-                    publishIosSimulatorArm64PublicationToKoTLRepository \
-                    publishIosArm64PublicationToKoTLRepository
+          ./gradlew publishIosX64PublicationToGitHubRepository \
+                    publishIosSimulatorArm64PublicationToGitHubRepository \
+                    publishIosArm64PublicationToGitHubRepository

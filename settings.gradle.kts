@@ -25,4 +25,4 @@ include(
     ":libs:string-parser",
 )
 
-rootProject.name = "kotl"
+rootProject.name = "koTL"
