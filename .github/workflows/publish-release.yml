@@ -62,29 +62,6 @@ jobs:
       - name: Publish ${{ env.release_version }}
         run: ./gradlew publishJvmPublicationToGitHubRepository
 
-  deploy-android:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 11
-      - name: Gradle Cache Setup
-        uses: gradle/gradle-build-action@v2
-      - name: Gradle Sync
-        run: ./gradlew
-      - name: Add Version to Env
-        run: |
-          release_version=$(./gradlew printVersion -q)
-          echo "release_version=$release_version" >> $GITHUB_ENV
-      - name: Publish ${{ env.release_version }}
-        run: ./gradlew publishAndroidPublicationToGitHubRepository
-
   deploy-js:
     runs-on: ubuntu-latest
     permissions:
