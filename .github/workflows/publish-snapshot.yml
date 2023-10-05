@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  GITHUB_USERNAME: "kotlin-telegram"
+  GITHUB_USERNAME: ${{ github.actor }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
   ORG_GRADLE_PROJECT_snapshot: true
@@ -19,6 +19,9 @@ jobs:
 
   deploy-multiplatform:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -36,6 +39,9 @@ jobs:
 
   deploy-jvm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -53,6 +59,9 @@ jobs:
 
   deploy-js:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
@@ -70,6 +79,9 @@ jobs:
 
   deploy-konan:
     runs-on: macos-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
       - name: Gradle Cache Setup
