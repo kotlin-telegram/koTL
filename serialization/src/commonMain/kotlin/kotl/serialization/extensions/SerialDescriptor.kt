@@ -4,16 +4,20 @@ package kotl.serialization.extensions
 
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
-import kotl.serialization.annotation.TLRpcCall
+import kotl.serialization.annotation.TLRpc
+import kotl.serialization.annotation.TLSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
 
-internal val SerialDescriptor.tlRpcCall: TLRpcCall?
-    get() = annotations.filterIsInstance<TLRpcCall>().firstOrNull()
+internal val SerialDescriptor.tlRpc: TLRpc?
+    get() = annotations.filterIsInstance<TLRpc>().firstOrNull()
 
 internal val SerialDescriptor.crc32: Crc32?
     get() = annotations.filterIsInstance<Crc32>().firstOrNull()
+
+internal val SerialDescriptor.tlSize: TLSize?
+    get() = annotations.filterIsInstance<TLSize>().firstOrNull()
 
 public fun SerialDescriptor.asTLDescriptor(): TLExpressionDescriptor = when (kind) {
     PolymorphicKind.SEALED -> asTypeDescriptor()
@@ -21,8 +25,8 @@ public fun SerialDescriptor.asTLDescriptor(): TLExpressionDescriptor = when (kin
     StructureKind.OBJECT -> asTypeDescriptor()
     StructureKind.LIST -> asVectorDescriptor()
     PrimitiveKind.BOOLEAN -> TLBooleanDescriptor
-    PrimitiveKind.INT -> TLIntDescriptor
-    PrimitiveKind.LONG -> TLLongDescriptor
+    PrimitiveKind.INT -> TLInt32Descriptor
+    PrimitiveKind.LONG -> TLInt64Descriptor
     PrimitiveKind.DOUBLE -> TLDoubleDescriptor
     PrimitiveKind.STRING -> TLStringDescriptor
     PrimitiveKind.BYTE -> unsupportedPrimitive("Byte")
@@ -39,7 +43,7 @@ private fun unsupportedPrimitive(
 ): Nothing = throw SerializationException("TL doesn't support $name. All supported primitives are: Boolean, Int, Long, String, Double")
 
 private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
-    if (tlRpcCall != null) {
+    if (tlRpc != null) {
         error("Cannot create type descriptor for @RpcCall, it's not intended to be deserialized")
     }
 
@@ -58,7 +62,14 @@ private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
     )
 }
 
-private fun SerialDescriptor.asVectorDescriptor(): TLVectorDescriptor {
-    val underlying = getElementDescriptor(index = 0).asTLDescriptor()
+private fun SerialDescriptor.asVectorDescriptor(): TLExpressionDescriptor {
+    val elementDescriptor = getElementDescriptor(index = 0)
+
+    if (elementDescriptor.kind == PrimitiveKind.INT) {
+        val size = this.tlSize
+        if (size != null) return TLIntDescriptor.of(size.bits)
+    }
+
+    val underlying = elementDescriptor.asTLDescriptor()
     return TLVectorDescriptor(underlying)
 }

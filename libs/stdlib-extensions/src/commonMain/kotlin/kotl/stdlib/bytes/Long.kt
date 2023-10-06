@@ -22,3 +22,10 @@ public fun ByteArray.decodeLong(offset: Int): Long =
             (this[offset + 5].toLong() and 0xff shl 40) or
             (this[offset + 6].toLong() and 0xff shl 48) or
             (this[offset + 7].toLong() and 0xff shl 56)
+
+private fun main() {
+    repeat(1_000_000_000) {
+        val long = Random.nextLong()
+        require(long.encodeToByteArray().decodeLong(offset = 0) == long)
+    }
+}

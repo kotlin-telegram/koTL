@@ -13,8 +13,9 @@ public class TLConstructorDescriptorBuilder(
 
     public fun booleanParameter(): Unit = parameter(TLBooleanDescriptor)
     public fun doubleParameter(): Unit = parameter(TLDoubleDescriptor)
-    public fun intParameter(): Unit = parameter(TLIntDescriptor)
-    public fun longParameter(): Unit = parameter(TLLongDescriptor)
+    public fun int32Parameter(): Unit = parameter(TLInt32Descriptor)
+    public fun int64Parameter(): Unit = parameter(TLInt64Descriptor)
+    public fun int128Parameter(): Unit = parameter(TLInt128Descriptor)
     public fun stringParameter(): Unit = parameter(TLStringDescriptor)
     public fun nullParameter(): Unit = parameter(TLNullDescriptor)
 

@@ -1,9 +1,6 @@
 package kotl.serialization.decoder
 
-import kotl.core.element.TLConstructor
-import kotl.core.element.TLElement
-import kotl.core.element.TLVector
-import kotl.core.element.typedLanguage
+import kotl.core.element.*
 
 internal interface TLElementReader {
     fun isDone(): Boolean
@@ -18,6 +15,16 @@ internal class SingleElementReader(private val value: TLElement) : TLElementRead
         isDone = true
         return value
     }
+}
+
+// big integers are interpreted as byte arrays
+internal class IntElementReader(
+    value: TLInt
+) : TLElementReader {
+    private val iterator = value.data.iterator()
+
+    override fun isDone(): Boolean = !iterator.hasNext()
+    override fun nextTLElement(): TLElement = TLInt32(iterator.next())
 }
 
 internal class ListElementReader(

@@ -1,16 +1,15 @@
 package kotl.serialization.encoder
 
+import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.extensions.crc32
-import kotl.serialization.extensions.tlRpcCall
+import kotl.serialization.extensions.tlRpc
+import kotl.serialization.extensions.tlSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.StructureKind
+import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
 
@@ -52,10 +51,25 @@ internal class TLEncoder(
     override fun beginCollection(
         descriptor: SerialDescriptor,
         collectionSize: Int
-    ): CompositeEncoder = when (descriptor.kind as StructureKind) {
-        StructureKind.LIST -> TLEncoder(tl, ListElementWriter(writer))
-        StructureKind.MAP -> throw SerializationException("TL doesn't support maps")
-        else -> error("Unknown collection kind ${descriptor.kind}")
+    ): CompositeEncoder {
+        return when (descriptor.kind as StructureKind) {
+            StructureKind.LIST -> intEncoder(descriptor, collectionSize)
+                ?: TLEncoder(tl, ListElementWriter(writer))
+            StructureKind.MAP -> throw SerializationException("TL doesn't support maps")
+            else -> error("Unknown collection kind ${descriptor.kind}")
+        }
+    }
+
+    private fun intEncoder(
+        descriptor: SerialDescriptor,
+        collectionSize: Int
+    ): TLEncoder? {
+        val underlying = descriptor.getElementDescriptor(index = 0)
+        if (underlying.kind != PrimitiveKind.INT) return null
+        val size = descriptor.tlSize?.bits ?: return null
+        require(collectionSize * Int.SIZE_BITS == size) { "collectionSize: $collectionSize, size: $size" }
+        val writer = IntElementWriter(writer, TLIntDescriptor.of(size))
+        return TLEncoder(tl, writer)
     }
 
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
@@ -64,7 +78,7 @@ internal class TLEncoder(
         when (descriptor.kind as? StructureKind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
                 val crc32 = descriptor.crc32
-                val rpcCall = descriptor.tlRpcCall
+                val rpcCall = descriptor.tlRpc
 
                 return when {
                     crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")

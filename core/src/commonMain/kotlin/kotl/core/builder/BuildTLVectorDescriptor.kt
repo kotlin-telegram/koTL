@@ -11,8 +11,9 @@ public class TLVectorDescriptorBuilder {
 
     public fun booleanUnderlying(): Unit = underlying(TLBooleanDescriptor)
     public fun doubleUnderlying(): Unit = underlying(TLDoubleDescriptor)
-    public fun intUnderlying(): Unit = underlying(TLIntDescriptor)
-    public fun longUnderlying(): Unit = underlying(TLLongDescriptor)
+    public fun int32Underlying(): Unit = underlying(TLInt32Descriptor)
+    public fun int64Underlying(): Unit = underlying(TLInt64Descriptor)
+    public fun int128Underlying(): Unit = underlying(TLInt128Descriptor)
     public fun stringUnderlying(): Unit = underlying(TLStringDescriptor)
     public fun nullUnderlying(): Unit = underlying(TLNullDescriptor)
 

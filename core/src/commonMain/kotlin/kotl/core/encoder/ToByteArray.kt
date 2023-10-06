@@ -9,9 +9,8 @@ import kotl.stdlib.int.nearestMultipleOf
 public fun TLElement.encodeToByteArray(): ByteArray = when (this) {
     is TLConstructor -> encodeToByteArray()
     is TLFunction -> asConstructor().encodeToByteArray()
+    is TLInt -> encodeToByteArray()
     is TLDouble -> double.toBits().encodeToByteArray()
-    is TLInt -> int.encodeToByteArray()
-    is TLLong -> long.encodeToByteArray()
     is TLString -> string.encodeToByteArrayTL()
     is TLVector -> asTLConstructor().encodeToByteArray()
     is TLTrue -> asTLConstructor().encodeToByteArray()
@@ -25,6 +24,13 @@ private fun TLConstructor.encodeToByteArray(): ByteArray {
         data + element.encodeToByteArray()
     }
     return header + parameters
+}
+
+// fixme: pretty slow and memory-consuming
+private fun TLInt.encodeToByteArray(): ByteArray {
+    return data.fold(byteArrayOf()) { acc, int ->
+        acc + int.encodeToByteArray()
+    }
 }
 
 private fun TLFunction.asConstructor(): TLConstructor = TLConstructor(crc32, parameters)

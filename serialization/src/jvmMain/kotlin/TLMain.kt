@@ -1,7 +1,10 @@
+@file:Suppress("ArrayInDataClass")
+
 package kotl.serialization
 
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
+import kotl.serialization.annotation.TLSize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -31,6 +34,13 @@ public data class inputUser(
     val username: String
 ) : InputUserType
 
+@Serializable
+@Crc32(value = 0xf21158c6_u)
+public data class ExchangePQ(
+    @TLSize(bits = 128)
+    public val nonce: IntArray
+)
+
 //private fun main() {
 //    val descriptor = InputUserType.serializer().descriptor.asTLDescriptor()
 //    println(descriptor.prettyString())
@@ -50,8 +60,9 @@ public data class inputUser(
 private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = when (this) {
     TLBooleanDescriptor -> indent + "boolean" + '\n'
     TLDoubleDescriptor -> indent + "double" + '\n'
-    TLIntDescriptor -> indent + "int" + '\n'
-    TLLongDescriptor -> indent + "long" + '\n'
+    TLInt32Descriptor -> indent + "int" + '\n'
+    TLInt64Descriptor -> indent + "long" + '\n'
+    TLInt128Descriptor -> indent + "int128" + '\n'
     TLNullDescriptor -> indent + "null" + '\n'
     TLStringDescriptor -> indent + "string" + '\n'
     is TLTypeDescriptor -> buildString {
@@ -73,7 +84,7 @@ private fun main() {
     val users = listOf(
         inputUserEmpty,
         inputUserSelf,
-        inputUser(userId = 0xff, accessHash = 0xff, username = "name")
+        inputUser(userId = intArrayOf(), accessHash = 0xff, username = "name")
     )
     val request = GetUserRequest(users)
 

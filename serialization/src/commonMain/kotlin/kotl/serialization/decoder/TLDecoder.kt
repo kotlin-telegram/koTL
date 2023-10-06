@@ -3,7 +3,8 @@ package kotl.serialization.decoder
 import kotl.core.element.*
 import kotl.serialization.TL
 import kotl.serialization.extensions.crc32
-import kotl.serialization.extensions.tlRpcCall
+import kotl.serialization.extensions.tlRpc
+import kotl.serialization.extensions.tlSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
@@ -32,15 +33,15 @@ internal class TLDecoder(
 
     override fun decodeInt(): Int {
         val element = reader.nextTLElement()
-        element as? TLInt
-            ?: throw SerializationException("TLInt expected, but $element found")
+        element as? TLInt32
+            ?: throw SerializationException("TLInt32 expected, but $element found")
         return element.int
     }
 
     override fun decodeLong(): Long {
         val element = reader.nextTLElement()
-        element as? TLLong
-            ?: throw SerializationException("TLLong expected, but $element found")
+        element as? TLInt64
+            ?: throw SerializationException("TLInt64 expected, but $element found")
         return element.long
     }
 
@@ -91,12 +92,14 @@ internal class TLDecoder(
         return when (descriptor.kind as? StructureKind) {
             StructureKind.LIST -> {
                 val vector = reader.nextTLElement()
+                val intDecoder = intDecoder(vector, descriptor)
+                if (intDecoder != null) return intDecoder
                 vector as? TLVector ?: throw SerializationException("TLVector expected, but $vector got")
                 TLDecoder(tl, ListElementReader(vector))
             }
             StructureKind.CLASS, StructureKind.OBJECT -> {
                 val crc32 = descriptor.crc32
-                val rpcCall = descriptor.tlRpcCall
+                val rpcCall = descriptor.tlRpc
 
                 val constructor = reader.nextTLElement()
                 constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
@@ -110,6 +113,15 @@ internal class TLDecoder(
             }
             else -> error("Unsupported structure kind ${descriptor.kind}")
         }
+    }
+
+    private fun intDecoder(int: TLElement, descriptor: SerialDescriptor): TLDecoder? {
+        if (int !is TLInt) return null
+        val size = descriptor.tlSize
+        require(size != null && size.bits == (int.data.size * Int.SIZE_BITS)) {
+            "descriptor.size: ${size?.bits}, vector.size: ${int.data.size}"
+        }
+        return TLDecoder(tl, IntElementReader(int))
     }
 
     override fun decodeByte(): Byte = unsupportedPrimitive("Byte")
