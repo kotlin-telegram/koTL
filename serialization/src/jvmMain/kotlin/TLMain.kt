@@ -84,7 +84,7 @@ private fun main() {
     val users = listOf(
         inputUserEmpty,
         inputUserSelf,
-        inputUser(userId = intArrayOf(), accessHash = 0xff, username = "name")
+        inputUser(userId = 0, accessHash = 0xff, username = "name")
     )
     val request = GetUserRequest(users)
 
