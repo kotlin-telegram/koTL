@@ -5,7 +5,6 @@ import kotl.serialization.TL
 import kotl.serialization.annotation.TLSize
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
-import kotl.serialization.extensions.tlSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
@@ -18,13 +17,12 @@ import kotlinx.serialization.modules.SerializersModule
 internal class TLDecoder(
     private val tl: TL,
     private val reader: TLElementReader,
-    private val parentDescriptor: SerialDescriptor? = null
+    private val parentDescriptor: SerialDescriptor? = null,
+    private var nextElementIndex: Int = 0
 ) : AbstractDecoder() {
-    private var lastElementIndex = 0
-
     override fun decodeElementIndex(descriptor: SerialDescriptor): Int {
         if (reader.isDone()) return CompositeDecoder.DECODE_DONE
-        return lastElementIndex++
+        return nextElementIndex++
     }
 
     override fun decodeBoolean(): Boolean {
@@ -73,7 +71,8 @@ internal class TLDecoder(
         return TLDecoder(
             tl = tl,
             reader = reader,
-            parentDescriptor = descriptor
+            parentDescriptor = descriptor,
+            nextElementIndex = 1
         )
     }
 
@@ -129,8 +128,7 @@ internal class TLDecoder(
     private fun intDecoder(int: TLElement): TLDecoder? {
         if (int !is TLInt) return null
 
-        // coercion made for value-classes
-        val index = (lastElementIndex - 1).coerceAtLeast(minimumValue = 0)
+        val index = nextElementIndex - 1
         val size = parentDescriptor
             ?.getElementAnnotations(index)
             ?.filterIsInstance<TLSize>()
