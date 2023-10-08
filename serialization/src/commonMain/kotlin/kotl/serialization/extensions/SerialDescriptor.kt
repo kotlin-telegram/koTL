@@ -22,8 +22,15 @@ internal val SerialDescriptor.tlSize: TLSize?
 public fun SerialDescriptor.asTLDescriptor(
     annotations: List<Annotation> = this.annotations
 ): TLExpressionDescriptor = when (kind) {
-    PolymorphicKind.SEALED -> asTypeDescriptor()
-    StructureKind.CLASS -> asTypeDescriptor()
+    PolymorphicKind.SEALED,
+    StructureKind.OBJECT,
+    StructureKind.CLASS -> {
+        if (isInline) {
+            getElementDescriptor(index = 0).asTLDescriptor(getElementAnnotations(index = 0))
+        } else {
+            asTypeDescriptor()
+        }
+    }
     StructureKind.OBJECT -> asTypeDescriptor()
     StructureKind.LIST -> asVectorDescriptor(annotations)
     PrimitiveKind.BOOLEAN -> TLBooleanDescriptor

@@ -11,6 +11,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractDecoder
 import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -68,6 +69,14 @@ internal class TLDecoder(
         return null
     }
 
+    override fun decodeInline(descriptor: SerialDescriptor): Decoder {
+        return TLDecoder(
+            tl = tl,
+            reader = reader,
+            parentDescriptor = descriptor
+        )
+    }
+
     override fun beginStructure(
         descriptor: SerialDescriptor
     ): CompositeDecoder {
@@ -120,7 +129,8 @@ internal class TLDecoder(
     private fun intDecoder(int: TLElement): TLDecoder? {
         if (int !is TLInt) return null
 
-        val index = lastElementIndex - 1
+        // coercion made for value-classes
+        val index = (lastElementIndex - 1).coerceAtLeast(minimumValue = 0)
         val size = parentDescriptor
             ?.getElementAnnotations(index)
             ?.filterIsInstance<TLSize>()

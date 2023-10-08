@@ -4,6 +4,7 @@ import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.annotation.TLSize
+import kotl.serialization.decoder.TLElementReader
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
 import kotl.serialization.extensions.tlSize
@@ -13,6 +14,7 @@ import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.AbstractEncoder
 import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Encoder
 
 @OptIn(ExperimentalSerializationApi::class)
 internal class TLEncoder(
@@ -51,6 +53,9 @@ internal class TLEncoder(
     override fun encodeString(value: String) = writer.writeTLElement(value.typedLanguage)
     override fun encodeBoolean(value: Boolean) = writer.writeTLElement(value.typedLanguage)
     override fun encodeNull() = writer.writeTLElement(null.typedLanguage)
+    override fun encodeInline(descriptor: SerialDescriptor): Encoder {
+        return TLEncoder(tl, writer, parentDescriptor = descriptor)
+    }
 
     override fun beginCollection(
         descriptor: SerialDescriptor,
