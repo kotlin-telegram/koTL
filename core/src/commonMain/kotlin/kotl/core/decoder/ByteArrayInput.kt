@@ -3,6 +3,7 @@ package kotl.core.decoder
 import kotl.core.descriptor.TLStringDescriptor.STRING_SIZE_MAGIC_NUMBER
 import kotl.stdlib.bytes.decodeInt
 import kotl.stdlib.bytes.decodeLong
+import kotl.stdlib.int.nearestMultipleOf
 
 internal class ByteArrayInput(private val bytes: ByteArray) {
     private var position: Int = 0
@@ -48,7 +49,11 @@ internal class ByteArrayInput(private val bytes: ByteArray) {
     private fun readShortString(head: Byte): String {
         val size = head.toInt() and 0xff
         val bytes = ByteArray(size) { i -> bytes[position + i] }
-        position += size
+
+        val sizeWithHead = size + 1
+        val sizeWithPadding = sizeWithHead.nearestMultipleOf(n = 4) - 1
+        position += sizeWithPadding
+
         return bytes.decodeToString()
     }
 }

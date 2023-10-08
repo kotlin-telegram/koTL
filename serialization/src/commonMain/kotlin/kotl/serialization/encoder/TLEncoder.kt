@@ -3,6 +3,7 @@ package kotl.serialization.encoder
 import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
+import kotl.serialization.annotation.TLSize
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
 import kotl.serialization.extensions.tlSize
@@ -16,8 +17,11 @@ import kotlinx.serialization.encoding.CompositeEncoder
 @OptIn(ExperimentalSerializationApi::class)
 internal class TLEncoder(
     private val tl: TL,
-    private val writer: TLElementWriter
+    private val writer: TLElementWriter,
+    private val parentDescriptor: SerialDescriptor? = null
 ): AbstractEncoder() {
+    private var elementIndex: Int = 0
+
     override fun <T> encodeSerializableValue(
         serializer: SerializationStrategy<T>,
         value: T
@@ -66,8 +70,17 @@ internal class TLEncoder(
     ): TLEncoder? {
         val underlying = descriptor.getElementDescriptor(index = 0)
         if (underlying.kind != PrimitiveKind.INT) return null
-        val size = descriptor.tlSize?.bits ?: return null
-        require(collectionSize * Int.SIZE_BITS == size) { "collectionSize: $collectionSize, size: $size" }
+
+        val sizeAnnotation = parentDescriptor
+            ?.getElementAnnotations(elementIndex)
+            ?.filterIsInstance<TLSize>()
+            ?.firstOrNull()
+        val size = sizeAnnotation?.bits ?: return null
+
+        require(collectionSize * Int.SIZE_BITS == size) {
+            "int$size expected, but int${collectionSize * Int.SIZE_BITS} got"
+        }
+
         val writer = IntElementWriter(writer, TLIntDescriptor.of(size))
         return TLEncoder(tl, writer)
     }
@@ -82,8 +95,8 @@ internal class TLEncoder(
 
                 return when {
                     crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
-                    crc32 != null -> TLEncoder(tl, ConstructorElementWriter(crc32.value, writer))
-                    rpcCall != null -> TLEncoder(tl, FunctionElementWriter(rpcCall.crc32, writer))
+                    crc32 != null -> TLEncoder(tl, ConstructorElementWriter(crc32.value, writer), descriptor)
+                    rpcCall != null -> TLEncoder(tl, FunctionElementWriter(rpcCall.crc32, writer), descriptor)
                     else -> throw SerializationException("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
                 }
             }
@@ -98,6 +111,7 @@ internal class TLEncoder(
 
     override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
         if (descriptor.kind != PolymorphicKind.SEALED) return true
+        elementIndex = 0
         return index > 0
     }
 

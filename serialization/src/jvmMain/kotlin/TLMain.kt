@@ -31,11 +31,12 @@ public data object inputUserSelf : InputUserType
 public data class inputUser(
     val userId: Long,
     val accessHash: Long,
-    val username: String
+    val username: String,
+    val pq: ExchangePQ
 ) : InputUserType
 
 @Serializable
-@Crc32(value = 0xf21158c6_u)
+@Crc32(value = 0xf0f0f0f_u)
 public data class ExchangePQ(
     @TLSize(bits = 128)
     public val nonce: IntArray
@@ -81,10 +82,13 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
 }
 
 private fun main() {
+    val pq = ExchangePQ(
+        nonce = intArrayOf(0, 0, 0, 0)
+    )
     val users = listOf(
         inputUserEmpty,
         inputUserSelf,
-        inputUser(userId = 0, accessHash = 0xff, username = "name")
+        inputUser(userId = 0, accessHash = 0xff, username = "name", pq = pq)
     )
     val request = GetUserRequest(users)
 

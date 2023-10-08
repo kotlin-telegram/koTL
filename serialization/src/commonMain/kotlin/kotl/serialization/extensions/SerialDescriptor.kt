@@ -19,11 +19,13 @@ internal val SerialDescriptor.crc32: Crc32?
 internal val SerialDescriptor.tlSize: TLSize?
     get() = annotations.filterIsInstance<TLSize>().firstOrNull()
 
-public fun SerialDescriptor.asTLDescriptor(): TLExpressionDescriptor = when (kind) {
+public fun SerialDescriptor.asTLDescriptor(
+    annotations: List<Annotation> = this.annotations
+): TLExpressionDescriptor = when (kind) {
     PolymorphicKind.SEALED -> asTypeDescriptor()
     StructureKind.CLASS -> asTypeDescriptor()
     StructureKind.OBJECT -> asTypeDescriptor()
-    StructureKind.LIST -> asVectorDescriptor()
+    StructureKind.LIST -> asVectorDescriptor(annotations)
     PrimitiveKind.BOOLEAN -> TLBooleanDescriptor
     PrimitiveKind.INT -> TLInt32Descriptor
     PrimitiveKind.LONG -> TLInt64Descriptor
@@ -49,24 +51,27 @@ private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
 
     if (kind == PolymorphicKind.SEALED) {
         val sealed = getElementDescriptor(index = 1)
-        val constructors = sealed.elementDescriptors.map { it.asTLDescriptor() }
-            .flatMap { (it as TLTypeDescriptor).constructors }
+        val constructors = sealed.elementDescriptors.map { descriptor ->
+            descriptor.asTLDescriptor()
+        }.flatMap { (it as TLTypeDescriptor).constructors }
         return TLTypeDescriptor(constructors)
     }
 
     val crc32 = crc32?.value ?: error("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
-    val parameters = elementDescriptors.map { it.asTLDescriptor() }
+    val parameters = elementDescriptors.mapIndexed { i, descriptor ->
+        descriptor.asTLDescriptor(getElementAnnotations(i))
+    }
 
     return TLTypeDescriptor(
         constructors = listOf(TLConstructorDescriptor(crc32, parameters))
     )
 }
 
-private fun SerialDescriptor.asVectorDescriptor(): TLExpressionDescriptor {
+private fun SerialDescriptor.asVectorDescriptor(annotations: List<Annotation>): TLExpressionDescriptor {
     val elementDescriptor = getElementDescriptor(index = 0)
 
     if (elementDescriptor.kind == PrimitiveKind.INT) {
-        val size = this.tlSize
+        val size = annotations.filterIsInstance<TLSize>().firstOrNull()
         if (size != null) return TLIntDescriptor.of(size.bits)
     }
 

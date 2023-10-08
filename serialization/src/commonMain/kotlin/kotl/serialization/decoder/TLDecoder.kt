@@ -2,6 +2,7 @@ package kotl.serialization.decoder
 
 import kotl.core.element.*
 import kotl.serialization.TL
+import kotl.serialization.annotation.TLSize
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
 import kotl.serialization.extensions.tlSize
@@ -15,7 +16,8 @@ import kotlinx.serialization.modules.SerializersModule
 @OptIn(ExperimentalSerializationApi::class)
 internal class TLDecoder(
     private val tl: TL,
-    private val reader: TLElementReader
+    private val reader: TLElementReader,
+    private val parentDescriptor: SerialDescriptor? = null
 ) : AbstractDecoder() {
     private var lastElementIndex = 0
 
@@ -92,7 +94,7 @@ internal class TLDecoder(
         return when (descriptor.kind as? StructureKind) {
             StructureKind.LIST -> {
                 val vector = reader.nextTLElement()
-                val intDecoder = intDecoder(vector, descriptor)
+                val intDecoder = intDecoder(vector)
                 if (intDecoder != null) return intDecoder
                 vector as? TLVector ?: throw SerializationException("TLVector expected, but $vector got")
                 TLDecoder(tl, ListElementReader(vector))
@@ -106,7 +108,7 @@ internal class TLDecoder(
 
                 when {
                     crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
-                    crc32 != null -> TLDecoder(tl, ConstructorElementReader(constructor))
+                    crc32 != null -> TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
                     rpcCall != null -> throw SerializationException("@TLRpcCall does not intended to be deserialized")
                     else -> throw SerializationException("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
                 }
@@ -115,9 +117,15 @@ internal class TLDecoder(
         }
     }
 
-    private fun intDecoder(int: TLElement, descriptor: SerialDescriptor): TLDecoder? {
+    private fun intDecoder(int: TLElement): TLDecoder? {
         if (int !is TLInt) return null
-        val size = descriptor.tlSize
+
+        val index = lastElementIndex - 1
+        val size = parentDescriptor
+            ?.getElementAnnotations(index)
+            ?.filterIsInstance<TLSize>()
+            ?.firstOrNull()
+
         require(size != null && size.bits == (int.data.size * Int.SIZE_BITS)) {
             "descriptor.size: ${size?.bits}, vector.size: ${int.data.size}"
         }
