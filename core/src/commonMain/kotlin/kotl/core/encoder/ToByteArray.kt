@@ -11,7 +11,7 @@ public fun TLElement.encodeToByteArray(): ByteArray = when (this) {
     is TLFunction -> asConstructor().encodeToByteArray()
     is TLInt -> encodeToByteArray()
     is TLDouble -> double.toBits().encodeToByteArray()
-    is TLString -> string.encodeToByteArrayTL()
+    is TLString -> bytes.encodeStringToByteArray()
     is TLVector -> asTLConstructor().encodeToByteArray()
     is TLTrue -> asTLConstructor().encodeToByteArray()
     is TLFalse -> asTLConstructor().encodeToByteArray()
@@ -35,24 +35,23 @@ private fun TLInt.encodeToByteArray(): ByteArray {
 
 private fun TLFunction.asConstructor(): TLConstructor = TLConstructor(crc32, parameters)
 
-private fun String.encodeToByteArrayTL(): ByteArray =
-    if (length < STRING_SIZE_MAGIC_NUMBER.toInt()) {
+private fun ByteArray.encodeStringToByteArray(): ByteArray =
+    if (size < STRING_SIZE_MAGIC_NUMBER.toInt()) {
         encodeSmallString()
     } else {
         encodeBigString()
     }
 
-private fun String.encodeSmallString(): ByteArray {
-    val unpadded = byteArrayOf(length.toByte()) + this.encodeToByteArray()
+private fun ByteArray.encodeSmallString(): ByteArray {
+    val unpadded = byteArrayOf(size.toByte()) + this
     val desiredLength = unpadded.size.nearestMultipleOf(n = 4)
     return unpadded.padEnd(desiredLength)
 }
 
-// todo: untested
-private fun String.encodeBigString(): ByteArray {
+private fun ByteArray.encodeBigString(): ByteArray {
     val unpadded = byteArrayOf(STRING_SIZE_MAGIC_NUMBER.toByte()) +
-            length.encodeToByteArray().dropLast(n = 1) +
-            this.encodeToByteArray()
+            size.encodeToByteArray().dropLast(n = 1) +
+            this
 
     val desiredLength = unpadded.size.nearestMultipleOf(n = 4)
 
