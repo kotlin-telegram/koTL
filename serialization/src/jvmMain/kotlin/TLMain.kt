@@ -88,11 +88,13 @@ private fun main() {
     val users = listOf(
         inputUserEmpty,
         inputUserSelf,
-        inputUser(userId = 0, accessHash = 0xff, username = "name", pq = pq)
+        inputUser(userId = 0, accessHash = 0xff, username = "*��r��/", pq = pq)
     )
     val request = GetUserRequest(users)
 
     println("INITIAL: $request")
+    println("*��r��/".length)
+    println("*��r��/".encodeToByteArray().joinToString(separator = " ") { it.toUByte().toString(16).padStart(2, '0') })
     val bytes = TL.encodeToByteArray(request)
     println("BYTES: ${bytes.toHexString()}")
     val deserialized: GetUserRequest = TL.decodeFromByteArray(bytes)

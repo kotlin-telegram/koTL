@@ -4,7 +4,9 @@ import kotlin.jvm.JvmInline
 
 @JvmInline
 public value class TLString(
-    public val string: String
-) : TLPrimitive
+    public val bytes: ByteArray
+) : TLPrimitive {
+    public val string: String get() = bytes.decodeToString()
+}
 
-public val String.typedLanguage: TLString get() = TLString(string = this)
+public val String.typedLanguage: TLString get() = TLString(encodeToByteArray())

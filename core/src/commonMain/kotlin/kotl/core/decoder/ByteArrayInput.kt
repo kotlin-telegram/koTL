@@ -27,7 +27,7 @@ internal class ByteArrayInput(private val bytes: ByteArray) {
         return double
     }
 
-    fun readString(): String {
+    fun readString(): ByteArray {
         val head = bytes[position]
         position++
         return if (head.toUByte() == STRING_SIZE_MAGIC_NUMBER) {
@@ -37,16 +37,16 @@ internal class ByteArrayInput(private val bytes: ByteArray) {
         }
     }
 
-    private fun readLongString(): String {
+    private fun readLongString(): ByteArray {
         val sizeBytes = bytes.sliceArray(position..(position + 2)) + 0
         val size = sizeBytes.decodeInt(offset = 0)
         position += (Int.SIZE_BYTES - 1) // one was already read for head
         val bytes = ByteArray(size) { i -> bytes[position + i] }
         position += size
-        return bytes.decodeToString()
+        return bytes
     }
 
-    private fun readShortString(head: Byte): String {
+    private fun readShortString(head: Byte): ByteArray {
         val size = head.toInt() and 0xff
         val bytes = ByteArray(size) { i -> bytes[position + i] }
 
@@ -54,6 +54,6 @@ internal class ByteArrayInput(private val bytes: ByteArray) {
         val sizeWithPadding = sizeWithHead.nearestMultipleOf(n = 4) - 1
         position += sizeWithPadding
 
-        return bytes.decodeToString()
+        return bytes
     }
 }
