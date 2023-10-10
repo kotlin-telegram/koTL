@@ -1,8 +1,10 @@
 package kotl.serialization.encoder
 
 import kotl.core.descriptor.TLIntDescriptor
+import kotl.core.element.TLExpression
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
+import kotl.serialization.annotation.TLBare
 import kotl.serialization.annotation.TLSize
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
@@ -117,7 +119,16 @@ internal class TLEncoder(
                     crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
                     crc32 != null -> TLEncoder(tl, ConstructorElementWriter(crc32.value, writer), descriptor)
                     rpcCall != null -> TLEncoder(tl, FunctionElementWriter(rpcCall.crc32, writer), descriptor)
-                    else -> throw SerializationException("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+                    else -> {
+                        val bare = parentDescriptor
+                            ?.getElementAnnotations(elementIndex)
+                            ?.filterIsInstance<TLBare>()
+                            ?.firstOrNull()
+
+                        bare ?: throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+
+                        TLEncoder(tl, ConstructorElementWriter(crc32 = null, writer), descriptor)
+                    }
                 }
             }
             else -> error("Unsupported structure kind ${descriptor.kind}")
@@ -130,8 +141,8 @@ internal class TLEncoder(
     }
 
     override fun encodeElement(descriptor: SerialDescriptor, index: Int): Boolean {
+        elementIndex = index
         if (descriptor.kind != PolymorphicKind.SEALED) return true
-        elementIndex = 0
         return index > 0
     }
 

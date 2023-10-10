@@ -37,13 +37,27 @@ private fun TLVectorDescriptor.decodeFromBytes(
 private fun TLTypeDescriptor.decodeFromBytes(
     input: ByteArrayInput
 ): TLConstructor {
-    val crc32 = input.readInt().toUInt()
+    val crc32: UInt?
 
-    val constructor = constructors.firstOrNull { constructor ->
-        constructor.crc32 == crc32
-    } ?: error("CRC32 Mismatch: Trying to decode type with constructors #${constructors.map { it.crc32.toString(radix = 16) }}, but got #${crc32.toString(radix = 16)}")
+    val parametersDescriptors: List<TLExpressionDescriptor>
 
-    val parameters = constructor.parameters.map { parameter ->
+    when (this) {
+        is TLTypeDescriptor.Bare -> {
+            crc32 = null
+            parametersDescriptors = parameters
+        }
+        is TLTypeDescriptor.Boxed -> {
+            crc32 = input.readInt().toUInt()
+
+            val constructor = constructors
+                .firstOrNull { constructor -> constructor.crc32 == crc32 }
+                ?: error("CRC32 Mismatch: Trying to decode type with constructors #${constructors.map { it.crc32.toString(radix = 16) }}, but got #${crc32.toString(radix = 16)}")
+
+            parametersDescriptors = constructor.parameters
+        }
+    }
+
+    val parameters = parametersDescriptors.map { parameter ->
         parameter.decodeFromBytes(input)
     }
 

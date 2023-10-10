@@ -2,6 +2,7 @@ package kotl.serialization.decoder
 
 import kotl.core.element.*
 import kotl.serialization.TL
+import kotl.serialization.annotation.TLBare
 import kotl.serialization.annotation.TLSize
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
@@ -87,6 +88,7 @@ internal class TLDecoder(
         if (descriptor.kind == PolymorphicKind.SEALED) {
             val constructor = reader.nextElement()
             constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
+            constructor as? TLConstructor.Boxed ?: throw SerializationException("Sealed structured may be only decoded when they are not bare")
 
             val crc32 = constructor.crc32
             val constructorDescriptor = descriptor.getElementDescriptor(index = 1).elementDescriptors
@@ -125,10 +127,17 @@ internal class TLDecoder(
                 constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
 
                 when {
-                    crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
                     crc32 != null -> TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
                     rpcCall != null -> throw SerializationException("@TLRpcCall does not intended to be deserialized")
-                    else -> throw SerializationException("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+                    else -> {
+                        val index = nextElementIndex - 1
+                        val bare = parentDescriptor
+                            ?.getElementAnnotations(index)
+                            ?.filterIsInstance<TLBare>()
+                            ?.firstOrNull()
+                        bare ?: throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+                        TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
+                    }
                 }
             }
             else -> error("Unsupported structure kind ${descriptor.kind}")

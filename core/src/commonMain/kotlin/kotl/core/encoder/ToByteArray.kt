@@ -20,11 +20,11 @@ public fun TLElement.encodeToByteArray(): ByteArray = when (this) {
 }
 
 private fun TLConstructor.encodeToByteArray(): ByteArray {
-    val header = crc32.toInt().encodeToByteArray()
-    val parameters = parameters.fold(byteArrayOf()) { data, element ->
+    val header = crc32?.toInt()?.encodeToByteArray() ?: byteArrayOf()
+    val bytes = parameters.fold(header) { data, element ->
         data + element.encodeToByteArray()
     }
-    return header + parameters
+    return bytes
 }
 
 // fixme: pretty slow and memory-consuming

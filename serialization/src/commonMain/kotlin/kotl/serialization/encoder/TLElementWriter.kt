@@ -68,7 +68,7 @@ internal class ListElementWriter(
 }
 
 internal class ConstructorElementWriter(
-    crc32: UInt,
+    crc32: UInt?,
     private val parent: TLElementWriter
 ) : TLElementWriter {
     private var encoded = TLConstructor(crc32, emptyList())
@@ -80,6 +80,12 @@ internal class ConstructorElementWriter(
 
     override fun endStructure() = parent.writeElement(encoded)
 }
+
+private fun TLConstructor.copy(parameters: List<TLExpression>): TLConstructor =
+    when (this) {
+        is TLConstructor.Bare -> copy(parameters = parameters)
+        is TLConstructor.Boxed -> copy(parameters = parameters)
+    }
 
 internal class FunctionElementWriter(
     crc32: UInt,

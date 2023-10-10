@@ -4,6 +4,7 @@ package kotl.serialization.extensions
 
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
+import kotl.serialization.annotation.TLBare
 import kotl.serialization.annotation.TLRpc
 import kotl.serialization.annotation.TLSize
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -16,8 +17,6 @@ internal val SerialDescriptor.tlRpc: TLRpc?
 internal val SerialDescriptor.crc32: Crc32?
     get() = annotations.filterIsInstance<Crc32>().firstOrNull()
 
-internal val SerialDescriptor.tlSize: TLSize?
-    get() = annotations.filterIsInstance<TLSize>().firstOrNull()
 
 public fun SerialDescriptor.asTLDescriptor(
     annotations: List<Annotation> = this.annotations
@@ -28,10 +27,10 @@ public fun SerialDescriptor.asTLDescriptor(
         if (isInline) {
             getElementDescriptor(index = 0).asTLDescriptor(getElementAnnotations(index = 0))
         } else {
-            asTypeDescriptor()
+            asTypeDescriptor(annotations)
         }
     }
-    StructureKind.OBJECT -> asTypeDescriptor()
+    StructureKind.OBJECT -> asTypeDescriptor(annotations)
     StructureKind.LIST -> asVectorDescriptor(annotations)
     PrimitiveKind.BOOLEAN -> TLBooleanDescriptor
     PrimitiveKind.INT -> TLInt32Descriptor
@@ -51,7 +50,9 @@ private fun unsupportedPrimitive(
     name: String
 ): Nothing = throw SerializationException("TL doesn't support $name. All supported primitives are: Boolean, Int, Long, String, Double")
 
-private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
+private fun SerialDescriptor.asTypeDescriptor(
+    annotations: List<Annotation>
+): TLTypeDescriptor {
     if (tlRpc != null) {
         error("Cannot create type descriptor for @RpcCall, it's not intended to be deserialized")
     }
@@ -60,17 +61,26 @@ private fun SerialDescriptor.asTypeDescriptor(): TLTypeDescriptor {
         val sealed = getElementDescriptor(index = 1)
         val constructors = sealed.elementDescriptors.map { descriptor ->
             descriptor.asTLDescriptor()
-        }.flatMap { (it as TLTypeDescriptor).constructors }
+        }.flatMap { (it as TLTypeDescriptor.Boxed).constructors }
         return TLTypeDescriptor(constructors)
     }
 
-    val crc32 = crc32?.value ?: error("Your class should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+    val crc32 = if (annotations.any { it is TLBare }) {
+        null
+    } else {
+        this.crc32?.value ?: error("Your class $serialName should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
+    }
+
     val parameters = elementDescriptors.mapIndexed { i, descriptor ->
         descriptor.asTLDescriptor(getElementAnnotations(i))
     }
 
-    return TLTypeDescriptor(
-        constructors = listOf(TLConstructorDescriptor(crc32, parameters))
+    crc32 ?: return TLTypeDescriptor.Bare(parameters)
+
+    return TLTypeDescriptor.Boxed(
+        constructors = listOf(
+            element = TLConstructorDescriptor(crc32, parameters)
+        )
     )
 }
 

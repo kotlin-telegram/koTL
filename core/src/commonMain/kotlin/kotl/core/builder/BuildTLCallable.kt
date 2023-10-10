@@ -7,7 +7,9 @@ import kotl.core.element.TLFunction
 import kotl.core.element.typedLanguage
 
 @TLDsl
-public class TLCallableBuilder(private val crc32: UInt) {
+public class TLCallableBuilder(
+    private val crc32: UInt? = null
+) {
     private val parameters = mutableListOf<TLExpression>()
 
     public fun parameter(value: TLExpression) {
@@ -28,6 +30,15 @@ public class TLCallableBuilder(private val crc32: UInt) {
         parameter(buildTLVector(builder))
     }
 
-    public fun toFunction(): TLFunction = TLFunction(crc32, parameters.toList())
-    public fun toConstructor(): TLConstructor = TLConstructor(crc32, parameters.toList())
+    public fun toFunction(): TLFunction = TLFunction(
+        crc32 = crc32 ?: error("Cannot create a function without crc32 set"),
+        parameters = parameters.toList()
+    )
+
+    public fun toConstructor(): TLConstructor =
+        if (crc32 == null) {
+            TLConstructor.Bare(parameters)
+        } else {
+            TLConstructor.Boxed(crc32, parameters)
+        }
 }

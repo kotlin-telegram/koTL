@@ -4,7 +4,9 @@ package kotl.serialization
 
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
+import kotl.serialization.annotation.TLBare
 import kotl.serialization.annotation.TLSize
+import kotl.serialization.bare.Bare
 import kotl.serialization.bytes.Bytes
 import kotl.serialization.int.Int128
 import kotlinx.serialization.Serializable
@@ -13,7 +15,7 @@ import kotlinx.serialization.encodeToByteArray
 
 @Serializable
 @Crc32(value = 0x2d84d5f5_u)
-public data class GetUserRequest(
+private data class GetUserRequest(
     val ids: List<InputUserType>
 )
 
@@ -22,15 +24,15 @@ public sealed interface InputUserType
 
 @Serializable
 @Crc32(value = 0xb98886cf_u)
-public data object inputUserEmpty : InputUserType
+private data object inputUserEmpty : InputUserType
 
 @Serializable
 @Crc32(value = 0xf7c1b13f_u)
-public data object inputUserSelf : InputUserType
+private data object inputUserSelf : InputUserType
 
 @Serializable
 @Crc32(value = 0xf21158c6_u)
-public data class inputUser(
+private data class inputUser(
     val userId: Long,
     val accessHash: Long,
     val username: String,
@@ -39,9 +41,16 @@ public data class inputUser(
 
 @Serializable
 @Crc32(value = 0xf0f0f0f_u)
-public data class ExchangePQ(
-    public val nonce: Int128,
-    public val pq: Bytes
+private data class ExchangePQ(
+    val nonce: Int128,
+    val pq: Bytes,
+    @TLBare val publicKey: PublicKey
+)
+
+@Serializable
+private data class PublicKey(
+    val n: Bytes,
+    val e: Bytes
 )
 
 //private fun main() {
@@ -71,10 +80,17 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
     TLBytesDescriptor -> indent + "bytes" + '\n'
     is TLTypeDescriptor -> buildString {
         appendLine(indent + "type: ")
-        constructors.forEach { constructor ->
-            appendLine("$indent    constructor: ${constructor.crc32}")
-            for (parameter in constructor.parameters) {
-                append(parameter.prettyString(indent = "$indent        "))
+        when (this@prettyString) {
+            is TLTypeDescriptor.Bare -> {
+                for (parameter in parameters) {
+                    append(parameter.prettyString(indent = "$indent        "))
+                }
+            }
+            is TLTypeDescriptor.Boxed -> constructors.forEach { constructor ->
+                appendLine("$indent    constructor: ${constructor.crc32}")
+                for (parameter in constructor.parameters) {
+                    append(parameter.prettyString(indent = "$indent        "))
+                }
             }
         }
     }
@@ -87,7 +103,11 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
 private fun main() {
     val pq = ExchangePQ(
         nonce = Int128(intArrayOf(0, 0, 0, 0)),
-        pq = Bytes(byteArrayOf(1, 1, 1, 1))
+        pq = Bytes(byteArrayOf(1, 1, 1, 1)),
+        publicKey = PublicKey(
+            n = Bytes(byteArrayOf(2, 2, 2, 2)),
+            e = Bytes(byteArrayOf(3, 3, 3, 3))
+        )
     )
     val users = listOf(
         inputUserEmpty,
