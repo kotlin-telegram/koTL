@@ -4,27 +4,35 @@ import kotl.core.element.*
 
 internal interface TLElementReader {
     fun isDone(): Boolean
-    fun nextTLElement(): TLElement
+    fun nextElement(): Any?
 }
 
 internal class SingleElementReader(private val value: TLElement) : TLElementReader {
     private var isDone = false
     override fun isDone(): Boolean = isDone
-    override fun nextTLElement(): TLElement {
+    override fun nextElement(): TLElement {
         if (isDone()) throw NoSuchElementException()
         isDone = true
         return value
     }
 }
 
-// big integers are interpreted as byte arrays
+internal class BytesElementReader(
+    value: TLBytes
+) : TLElementReader {
+    private val iterator = value.bytes.iterator()
+    override fun isDone(): Boolean = !iterator.hasNext()
+    override fun nextElement(): Byte = iterator.nextByte()
+}
+
+// big integers interpreted as int arrays
 internal class IntElementReader(
     value: TLInt
 ) : TLElementReader {
     private val iterator = value.data.iterator()
 
     override fun isDone(): Boolean = !iterator.hasNext()
-    override fun nextTLElement(): TLElement = TLInt32(iterator.next())
+    override fun nextElement(): Int = iterator.next()
 }
 
 internal class ListElementReader(
@@ -33,7 +41,7 @@ internal class ListElementReader(
     private val iterator = value.elements.iterator()
 
     override fun isDone(): Boolean = !iterator.hasNext()
-    override fun nextTLElement(): TLElement = iterator.next()
+    override fun nextElement(): TLElement = iterator.next()
 }
 
 internal class ConstructorElementReader(
@@ -42,7 +50,7 @@ internal class ConstructorElementReader(
     private val iterator = value.parameters.iterator()
 
     override fun isDone(): Boolean = !iterator.hasNext()
-    override fun nextTLElement(): TLElement = iterator.next()
+    override fun nextElement(): TLElement = iterator.next()
 }
 
 internal class SealedElementReader(
@@ -52,5 +60,5 @@ internal class SealedElementReader(
     private val iterator = listOf(className.typedLanguage, constructor).iterator()
 
     override fun isDone(): Boolean = !iterator.hasNext()
-    override fun nextTLElement(): TLElement = iterator.next()
+    override fun nextElement(): TLElement = iterator.next()
 }

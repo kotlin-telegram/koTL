@@ -21,6 +21,7 @@ private fun TLExpressionDescriptor.decodeFromBytes(input: ByteArrayInput): TLExp
         is TLIntDescriptor -> decodeFromBytes(input)
         is TLDoubleDescriptor -> TLDouble(input.readDouble())
         is TLStringDescriptor -> TLString(input.readString())
+        is TLBytesDescriptor -> TLBytes(input.readBytes())
     }
 
 private fun TLVectorDescriptor.decodeFromBytes(

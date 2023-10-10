@@ -26,42 +26,47 @@ internal class TLDecoder(
     }
 
     override fun decodeBoolean(): Boolean {
-        val element = reader.nextTLElement()
+        val element = reader.nextElement()
         element as? TLBoolean
             ?: throw SerializationException("TLBoolean expected, but $element found")
         return element.boolean
     }
 
     override fun decodeInt(): Int {
-        val element = reader.nextTLElement()
-        element as? TLInt32
-            ?: throw SerializationException("TLInt32 expected, but $element found")
-        return element.int
+        val element = reader.nextElement()
+        element as? Int
+            ?: throw SerializationException("Int expected, but $element found")
+        return element
     }
 
     override fun decodeLong(): Long {
-        val element = reader.nextTLElement()
+        val element = reader.nextElement()
         element as? TLInt64
             ?: throw SerializationException("TLInt64 expected, but $element found")
         return element.long
     }
 
     override fun decodeDouble(): Double {
-        val element = reader.nextTLElement()
+        val element = reader.nextElement()
         element as? TLDouble
             ?: throw SerializationException("TLDouble expected, but $element found")
         return element.double
     }
 
     override fun decodeString(): String {
-        val element = reader.nextTLElement()
+        val element = reader.nextElement()
         element as? TLString
             ?: throw SerializationException("TLString expected, but $element found")
         return element.string
     }
 
+    override fun decodeByte(): Byte {
+        if (reader !is BytesElementReader) unsupportedPrimitive("Byte")
+        return reader.nextElement()
+    }
+
     override fun decodeNull(): Nothing? {
-        val element = reader.nextTLElement()
+        val element = reader.nextElement()
         element as? TLNull
             ?: throw SerializationException("TLNull expected, but $element found")
         return null
@@ -80,7 +85,7 @@ internal class TLDecoder(
         descriptor: SerialDescriptor
     ): CompositeDecoder {
         if (descriptor.kind == PolymorphicKind.SEALED) {
-            val constructor = reader.nextTLElement()
+            val constructor = reader.nextElement()
             constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
 
             val crc32 = constructor.crc32
@@ -101,9 +106,14 @@ internal class TLDecoder(
 
         return when (descriptor.kind as? StructureKind) {
             StructureKind.LIST -> {
-                val vector = reader.nextTLElement()
+                val vector = reader.nextElement() as TLElement
+
                 val intDecoder = intDecoder(vector)
                 if (intDecoder != null) return intDecoder
+
+                val bytesDecoder = bytesDecoder(vector)
+                if (bytesDecoder != null) return bytesDecoder
+
                 vector as? TLVector ?: throw SerializationException("TLVector expected, but $vector got")
                 TLDecoder(tl, ListElementReader(vector))
             }
@@ -111,7 +121,7 @@ internal class TLDecoder(
                 val crc32 = descriptor.crc32
                 val rpcCall = descriptor.tlRpc
 
-                val constructor = reader.nextTLElement()
+                val constructor = reader.nextElement()
                 constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
 
                 when {
@@ -140,7 +150,11 @@ internal class TLDecoder(
         return TLDecoder(tl, IntElementReader(int))
     }
 
-    override fun decodeByte(): Byte = unsupportedPrimitive("Byte")
+    private fun bytesDecoder(bytes: TLElement): TLDecoder? {
+        if (bytes !is TLBytes) return null
+        return TLDecoder(tl, BytesElementReader(bytes))
+    }
+
     override fun decodeChar(): Char = unsupportedPrimitive("Char")
     override fun decodeFloat(): Float = unsupportedPrimitive("Float")
     override fun decodeShort(): Short = unsupportedPrimitive("Short")

@@ -11,7 +11,8 @@ public fun TLElement.encodeToByteArray(): ByteArray = when (this) {
     is TLFunction -> asConstructor().encodeToByteArray()
     is TLInt -> encodeToByteArray()
     is TLDouble -> double.toBits().encodeToByteArray()
-    is TLString -> bytes.encodeStringToByteArray()
+    is TLString -> string.encodeStringTL()
+    is TLBytes -> bytes.encodeBytesTL()
     is TLVector -> asTLConstructor().encodeToByteArray()
     is TLTrue -> asTLConstructor().encodeToByteArray()
     is TLFalse -> asTLConstructor().encodeToByteArray()
@@ -35,7 +36,10 @@ private fun TLInt.encodeToByteArray(): ByteArray {
 
 private fun TLFunction.asConstructor(): TLConstructor = TLConstructor(crc32, parameters)
 
-private fun ByteArray.encodeStringToByteArray(): ByteArray =
+private fun String.encodeStringTL(): ByteArray =
+    encodeToByteArray().encodeBytesTL()
+
+private fun ByteArray.encodeBytesTL(): ByteArray =
     if (size < STRING_SIZE_MAGIC_NUMBER.toInt()) {
         encodeSmallString()
     } else {

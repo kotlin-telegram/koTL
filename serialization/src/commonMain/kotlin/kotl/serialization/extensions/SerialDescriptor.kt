@@ -82,6 +82,10 @@ private fun SerialDescriptor.asVectorDescriptor(annotations: List<Annotation>): 
         if (size != null) return TLIntDescriptor.of(size.bits)
     }
 
+    if (elementDescriptor.kind == PrimitiveKind.BYTE) {
+        return TLBytesDescriptor
+    }
+
     val underlying = elementDescriptor.asTLDescriptor()
     return TLVectorDescriptor(underlying)
 }

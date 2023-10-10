@@ -27,7 +27,9 @@ internal class ByteArrayInput(private val bytes: ByteArray) {
         return double
     }
 
-    fun readString(): ByteArray {
+    fun readString(): String = readBytes().decodeToString()
+
+    fun readBytes(): ByteArray {
         val head = bytes[position]
         position++
         return if (head.toUByte() == STRING_SIZE_MAGIC_NUMBER) {

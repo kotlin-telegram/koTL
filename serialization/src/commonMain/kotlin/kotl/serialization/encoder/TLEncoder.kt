@@ -4,10 +4,8 @@ import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.annotation.TLSize
-import kotl.serialization.decoder.TLElementReader
 import kotl.serialization.extensions.crc32
 import kotl.serialization.extensions.tlRpc
-import kotl.serialization.extensions.tlSize
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -47,12 +45,19 @@ internal class TLEncoder(
         require(descriptor.kind in supportedDescriptors) { "TL doesn't support ${descriptor.kind}" }
     }
 
-    override fun encodeInt(value: Int) = writer.writeTLElement(value.typedLanguage)
-    override fun encodeLong(value: Long) = writer.writeTLElement(value.typedLanguage)
-    override fun encodeDouble(value: Double) = writer.writeTLElement(value.typedLanguage)
-    override fun encodeString(value: String) = writer.writeTLElement(value.typedLanguage)
-    override fun encodeBoolean(value: Boolean) = writer.writeTLElement(value.typedLanguage)
-    override fun encodeNull() = writer.writeTLElement(null.typedLanguage)
+    override fun encodeInt(value: Int) = writer.writeElement(value)
+    override fun encodeByte(value: Byte) {
+        if (writer is BytesElementWriter) {
+            writer.writeElement(value)
+        } else {
+            unsupportedPrimitive("Byte")
+        }
+    }
+    override fun encodeLong(value: Long) = writer.writeElement(value.typedLanguage)
+    override fun encodeDouble(value: Double) = writer.writeElement(value.typedLanguage)
+    override fun encodeString(value: String) = writer.writeElement(value.typedLanguage)
+    override fun encodeBoolean(value: Boolean) = writer.writeElement(value.typedLanguage)
+    override fun encodeNull() = writer.writeElement(null.typedLanguage)
     override fun encodeInline(descriptor: SerialDescriptor): Encoder {
         return TLEncoder(tl, writer, parentDescriptor = descriptor)
     }
@@ -63,6 +68,7 @@ internal class TLEncoder(
     ): CompositeEncoder {
         return when (descriptor.kind as StructureKind) {
             StructureKind.LIST -> intEncoder(descriptor, collectionSize)
+                ?: bytesEncoder(descriptor)
                 ?: TLEncoder(tl, ListElementWriter(writer))
             StructureKind.MAP -> throw SerializationException("TL doesn't support maps")
             else -> error("Unknown collection kind ${descriptor.kind}")
@@ -87,6 +93,15 @@ internal class TLEncoder(
         }
 
         val writer = IntElementWriter(writer, TLIntDescriptor.of(size))
+        return TLEncoder(tl, writer)
+    }
+
+    private fun bytesEncoder(
+        descriptor: SerialDescriptor
+    ): TLEncoder? {
+        val underlying = descriptor.getElementDescriptor(index = 0)
+        if (underlying.kind != PrimitiveKind.BYTE) return null
+        val writer = BytesElementWriter(writer)
         return TLEncoder(tl, writer)
     }
 
@@ -120,7 +135,6 @@ internal class TLEncoder(
         return index > 0
     }
 
-    override fun encodeByte(value: Byte) = unsupportedPrimitive("Byte")
     override fun encodeChar(value: Char) = unsupportedPrimitive("Char")
     override fun encodeFloat(value: Float) = unsupportedPrimitive("Float")
     override fun encodeShort(value: Short) = unsupportedPrimitive("Short")

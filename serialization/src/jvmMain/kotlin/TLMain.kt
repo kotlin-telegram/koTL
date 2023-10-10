@@ -5,6 +5,7 @@ package kotl.serialization
 import kotl.core.descriptor.*
 import kotl.serialization.annotation.Crc32
 import kotl.serialization.annotation.TLSize
+import kotl.serialization.bytes.Bytes
 import kotl.serialization.int.Int128
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromByteArray
@@ -39,7 +40,8 @@ public data class inputUser(
 @Serializable
 @Crc32(value = 0xf0f0f0f_u)
 public data class ExchangePQ(
-    public val nonce: Int128
+    public val nonce: Int128,
+    public val pq: Bytes
 )
 
 //private fun main() {
@@ -66,6 +68,7 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
     TLInt128Descriptor -> indent + "int128" + '\n'
     TLNullDescriptor -> indent + "null" + '\n'
     TLStringDescriptor -> indent + "string" + '\n'
+    TLBytesDescriptor -> indent + "bytes" + '\n'
     is TLTypeDescriptor -> buildString {
         appendLine(indent + "type: ")
         constructors.forEach { constructor ->
@@ -83,7 +86,8 @@ private fun TLExpressionDescriptor.prettyString(indent: String = ""): String = w
 
 private fun main() {
     val pq = ExchangePQ(
-        nonce = Int128(intArrayOf(0, 0, 0, 0))
+        nonce = Int128(intArrayOf(0, 0, 0, 0)),
+        pq = Bytes(byteArrayOf(1, 1, 1, 1))
     )
     val users = listOf(
         inputUserEmpty,

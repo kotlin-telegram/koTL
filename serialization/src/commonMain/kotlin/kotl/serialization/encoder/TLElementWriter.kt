@@ -4,7 +4,7 @@ import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.*
 
 internal interface TLElementWriter {
-    fun writeTLElement(element: TLElement)
+    fun writeElement(element: Any?)
 
     fun endStructure() {}
 }
@@ -12,8 +12,25 @@ internal interface TLElementWriter {
 internal class SingleElementWriter : TLElementWriter {
     lateinit var encoded: TLElement
 
-    override fun writeTLElement(element: TLElement) {
+    override fun writeElement(element: Any?) {
+        require(element is TLElement) { "Only TLElement supported for this writer, got $element" }
         encoded = element
+    }
+}
+
+internal class BytesElementWriter(
+    private val parent: TLElementWriter
+) : TLElementWriter {
+    private val bytes = mutableListOf<Byte>()
+
+    override fun writeElement(element: Any?) {
+        require(element is Byte) { "Only kotlin.Byte supported for this writer, got $element" }
+        bytes += element
+    }
+
+    override fun endStructure() {
+        val element = TLBytes(bytes.toByteArray())
+        parent.writeElement(element)
     }
 }
 
@@ -26,13 +43,14 @@ internal class IntElementWriter(
     )
     private var index = 0
 
-    override fun writeTLElement(element: TLElement) {
-        ints[index++] = (element as? TLInt32)?.int ?: error("Only int elements supported for this writer")
+    override fun writeElement(element: Any?) {
+        require(element is Int) { "Only kotlin.Int supported for this writer, got $element" }
+        ints[index++] = element
     }
 
     override fun endStructure() {
         val element = descriptor.create(ints)
-        parent.writeTLElement(element)
+        parent.writeElement(element)
     }
 }
 
@@ -41,12 +59,12 @@ internal class ListElementWriter(
 ) : TLElementWriter {
     private var encoded = TLVector.Empty
 
-    override fun writeTLElement(element: TLElement) {
+    override fun writeElement(element: Any?) {
         require(element is TLExpression) { "Cannot write $element to vector, only expressions are allowed" }
         encoded = encoded.copy(elements = encoded.elements + element)
     }
 
-    override fun endStructure() = parent.writeTLElement(encoded)
+    override fun endStructure() = parent.writeElement(encoded)
 }
 
 internal class ConstructorElementWriter(
@@ -55,12 +73,12 @@ internal class ConstructorElementWriter(
 ) : TLElementWriter {
     private var encoded = TLConstructor(crc32, emptyList())
 
-    override fun writeTLElement(element: TLElement) {
+    override fun writeElement(element: Any?) {
         require(element is TLExpression) { "Cannot write $element to constructor, only expressions are allowed" }
         encoded = encoded.copy(parameters = encoded.parameters + element)
     }
 
-    override fun endStructure() = parent.writeTLElement(encoded)
+    override fun endStructure() = parent.writeElement(encoded)
 }
 
 internal class FunctionElementWriter(
@@ -69,10 +87,10 @@ internal class FunctionElementWriter(
 ) : TLElementWriter {
     private var encoded = TLFunction(crc32, emptyList())
 
-    override fun writeTLElement(element: TLElement) {
+    override fun writeElement(element: Any?) {
         require(element is TLExpression) { "Cannot write $element to function, only expressions are allowed" }
         encoded = encoded.copy(parameters = encoded.parameters + element)
     }
 
-    override fun endStructure() = parent.writeTLElement(encoded)
+    override fun endStructure() = parent.writeElement(encoded)
 }
