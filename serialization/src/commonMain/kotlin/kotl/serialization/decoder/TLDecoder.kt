@@ -126,18 +126,17 @@ internal class TLDecoder(
                 val constructor = reader.nextElement()
                 constructor as? TLConstructor ?: throw SerializationException("TLConstructor expected, but $constructor got")
 
+                val index = nextElementIndex - 1
+                val bare = parentDescriptor
+                    ?.getElementAnnotations(index)
+                    ?.filterIsInstance<TLBare>()
+                    ?.firstOrNull()
+
                 when {
+                    bare != null -> TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
                     crc32 != null -> TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
                     rpcCall != null -> throw SerializationException("@TLRpcCall does not intended to be deserialized")
-                    else -> {
-                        val index = nextElementIndex - 1
-                        val bare = parentDescriptor
-                            ?.getElementAnnotations(index)
-                            ?.filterIsInstance<TLBare>()
-                            ?.firstOrNull()
-                        bare ?: throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
-                        TLDecoder(tl, ConstructorElementReader(constructor), descriptor)
-                    }
+                    else -> throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
                 }
             }
             else -> error("Unsupported structure kind ${descriptor.kind}")

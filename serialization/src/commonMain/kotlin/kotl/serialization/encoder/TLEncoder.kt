@@ -115,20 +115,17 @@ internal class TLEncoder(
                 val crc32 = descriptor.crc32
                 val rpcCall = descriptor.tlRpc
 
+                val bare = parentDescriptor
+                    ?.getElementAnnotations(elementIndex)
+                    ?.filterIsInstance<TLBare>()
+                    ?.firstOrNull()
+
                 return when {
                     crc32 != null && rpcCall != null -> throw SerializationException("You should not annotate class with both @Crc32 or @TLRpcCall, use @Crc32 for constructors and @TLRpcCall for functions")
+                    bare != null -> TLEncoder(tl, ConstructorElementWriter(crc32 = null, writer), descriptor)
                     crc32 != null -> TLEncoder(tl, ConstructorElementWriter(crc32.value, writer), descriptor)
                     rpcCall != null -> TLEncoder(tl, FunctionElementWriter(rpcCall.crc32, writer), descriptor)
-                    else -> {
-                        val bare = parentDescriptor
-                            ?.getElementAnnotations(elementIndex)
-                            ?.filterIsInstance<TLBare>()
-                            ?.firstOrNull()
-
-                        bare ?: throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
-
-                        TLEncoder(tl, ConstructorElementWriter(crc32 = null, writer), descriptor)
-                    }
+                    else -> throw SerializationException("Your class ${descriptor.serialName} should be annotated with @Crc32 for constructors or @TLRpcCall for functions to make it compatible with TL")
                 }
             }
             else -> error("Unsupported structure kind ${descriptor.kind}")
