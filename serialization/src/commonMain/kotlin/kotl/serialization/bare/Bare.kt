@@ -16,3 +16,5 @@ public value class Bare<T>(
     @TLBare
     public val value: T
 )
+
+public val <T> T.bare: Bare<T> get() = Bare(value = this)
