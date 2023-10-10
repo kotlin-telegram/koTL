@@ -15,10 +15,7 @@ public data class Int128(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Int128
-
+        if (other !is Int128) return false
         return data.contentEquals(other.data)
     }
 

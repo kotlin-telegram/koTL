@@ -12,10 +12,7 @@ import kotlinx.serialization.encoding.Encoder
 public data class Bytes(public val payload: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as Bytes
-
+        if (other !is Bytes) return false
         return payload.contentEquals(other.payload)
     }
 
