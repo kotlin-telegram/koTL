@@ -5,12 +5,24 @@ import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
 @Serializable
-@JvmInline
-public value class Int128(
+public data class Int128(
     @TLSize(bits = 128)
     public val data: IntArray
 ) {
     init {
         require(data.size == 4) { "int128 expected, but int${data.size * Int.SIZE_BITS} got" }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Int128
+
+        return data.contentEquals(other.data)
+    }
+
+    override fun hashCode(): Int {
+        return data.contentHashCode()
     }
 }
