@@ -2,6 +2,7 @@ package kotl.serialization.encoder
 
 import kotl.core.descriptor.TLIntDescriptor
 import kotl.core.element.TLExpression
+import kotl.core.element.TLInt32
 import kotl.core.element.typedLanguage
 import kotl.serialization.TL
 import kotl.serialization.annotation.TLBare
@@ -47,7 +48,14 @@ internal class TLEncoder(
         require(descriptor.kind in supportedDescriptors) { "TL doesn't support ${descriptor.kind}" }
     }
 
-    override fun encodeInt(value: Int) = writer.writeElement(value)
+    override fun encodeInt(value: Int) {
+        if (writer is IntElementWriter) {
+            writer.writeElement(value)
+        } else {
+            writer.writeElement(TLInt32(value))
+        }
+    }
+
     override fun encodeByte(value: Byte) {
         if (writer is BytesElementWriter) {
             writer.writeElement(value)
